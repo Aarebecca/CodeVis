@@ -18,3 +18,10 @@ export interface IVarFlow {
   lineHeight?: number;
   colorClassNameRule?: (color: string) => string;
 }
+
+export type BezierControlPointsGenerator = (
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number
+) => [number, number, number, number];

@@ -17,7 +17,7 @@ const UILayout: React.FC<IUILayout> = (props) => {
       <Layout>
         <Sider>left sidebar</Sider>
         <Content>
-          <div style={{ width: "500px", height: "300px" }}>
+          <div style={{ width: "1000px", height: "800px" }}>
             <VarFlow code={code}></VarFlow>
           </div>
         </Content>
