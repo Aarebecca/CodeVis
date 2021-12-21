@@ -1,6 +1,8 @@
 import { editor } from "monaco-editor/esm/vs/editor/editor.api";
-export type { Monaco } from "@monaco-editor/react";
+import type React from "react";
+import type { Monaco } from "@monaco-editor/react";
 
+export { Monaco };
 export const EditorOption = editor.EditorOption;
 
 export type EEditorOption = editor.EditorOption;
@@ -12,10 +14,18 @@ export type Decoration = {
   type?: "" | "glyphMargin" | "inline" | "lineDecorations" | "margin";
 };
 
+export type CodeEditorInstance = {
+  editor: ICodeEditor;
+  monaco: Monaco;
+};
+
 export interface EditorOptions {
   code: string;
   lineHeight?: number;
   fontSize?: number;
   theme?: "light" | "vs-dark";
   decorations?: Decoration[];
+  getEditorInstance?: React.Dispatch<
+    React.SetStateAction<CodeEditorInstance | undefined>
+  >;
 }

@@ -1,5 +1,6 @@
 import type { ICodeEditor } from "./types";
-import type { Monaco, EEditorOption, FontInfo } from "./types";
+import type { EEditorOption, FontInfo } from "./types";
+import type { Point } from "../types";
 import { EditorOption } from "./types";
 
 /**
@@ -44,11 +45,34 @@ export function measureEditorText(editor: ICodeEditor, text: string) {
 }
 
 /**
- * 获得编辑器当前的位置信息
- * 包括宽高、x、y坐标
+ * 将代码的行列号转化为其相对于内容区左上角的偏移量
+ * @param bias 偏移。center - 中心位置, leftTop - 左上角, fontLeftTop - 字体左上角
  */
-export function getEditorPosition(editor: ICodeEditor) {
-  const domNode = editor.getDomNode();
-  const { x, y } = domNode!.getBoundingClientRect();
-  return { x, y };
+export function lineCol2Offset(
+  editor: ICodeEditor,
+  line: number,
+  column: number,
+  bias:
+    | "center"
+    | "leftTop"
+    | "fontLeftTop"
+    | "fontTop"
+    | "fontBottom" = "fontLeftTop"
+): Point {
+  const lineHeight = getLineHeight(editor);
+  const top = lineHeight * (line - 1);
+  const [charWidth, charHeight] = getCharacterShape(editor);
+  const left = (column - 1) * charWidth;
+  if (bias === "leftTop") return [left, top];
+  if (bias === "fontLeftTop") {
+    return [left, top + (lineHeight - charHeight) / 2];
+  }
+  if (bias === "fontTop") {
+    return [left + charWidth / 2, top + (lineHeight - charHeight) / 2];
+  }
+  if (bias === "fontBottom") {
+    return [left + charWidth / 2, top + lineHeight];
+  }
+  // center
+  return [left + charWidth / 2, top + lineHeight / 2];
 }

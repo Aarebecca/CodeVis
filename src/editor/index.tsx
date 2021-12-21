@@ -2,7 +2,6 @@ import _ from "lodash";
 import React, { useRef, useState, useEffect } from "react";
 import { Spin } from "antd";
 import Editor from "@monaco-editor/react";
-import { getEditorPosition, getLineHeight, measureEditorText } from "./utils";
 
 import type { ICodeEditor, Monaco, EditorOptions } from "./types";
 
@@ -23,7 +22,22 @@ const CodeEditor: React.FC<EditorOptions> = (props) => {
     setMonacoState(monaco);
   }
 
-  // draw decorations
+  /**
+   * tell parent component the editor instance
+   */
+  useEffect(() => {
+    if (props.getEditorInstance && editorState && monacoState) {
+      props.getEditorInstance({
+        editor: editorState,
+        monaco: monacoState,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editorState, monacoState, props.getEditorInstance]);
+
+  /**
+   * draw decorations
+   */
   useEffect(() => {
     /**
      * 添加编辑器的装饰
@@ -33,13 +47,6 @@ const CodeEditor: React.FC<EditorOptions> = (props) => {
 
       const { decorations = [] } = props;
       decorations.forEach(({ range, className, type = "inline" }) => {
-        console.log({
-          range: new monacoState.Range(...range),
-          options: {
-            [_.camelCase(`${type}ClassName`)]: className,
-          },
-        });
-
         const decoration = editorState.deltaDecorations(
           [],
           [
@@ -77,6 +84,7 @@ const CodeEditor: React.FC<EditorOptions> = (props) => {
       }
     }
 
+    removeAllDecoration();
     addDecorations();
     return removeAllDecoration;
     // eslint-disable-next-line react-hooks/exhaustive-deps
