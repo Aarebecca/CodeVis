@@ -16,6 +16,6 @@ export const config = {
     return `http://${host}/${lodash.get(config, ["apis", api], "")}`;
   },
   apis: {
-    varFlow: "var-flow",
+    heatMap: "heat-map",
   },
 };
