@@ -44,34 +44,55 @@ export function measureEditorText(editor: ICodeEditor, text: string) {
   return getCharacterShape(editor)[0] * text.length;
 }
 
+const biasOptions = [
+  "center",
+  "leftTop",
+  "fontLeftTop",
+  "fontTop",
+  "fontBottom",
+  "fontLeft",
+  "fontRight",
+] as const;
+
+export type BiasOptions = typeof biasOptions[number];
+
 /**
- * 将代码的行列号转化为其相对于内容区左上角的偏移量
+ * 将代码的行列号转化为其相对于内容区左上角的位置
  * @param bias 偏移。center - 中心位置, leftTop - 左上角, fontLeftTop - 字体左上角
+ * @param offset 为避免线条与字体的边界重合，可以设置偏移量
  */
-export function lineCol2Offset(
+export function lineCol2Position(
   editor: ICodeEditor,
   line: number,
   column: number,
-  bias:
-    | "center"
-    | "leftTop"
-    | "fontLeftTop"
-    | "fontTop"
-    | "fontBottom" = "fontLeftTop"
+  bias: BiasOptions = "fontLeftTop",
+  offset: [number, number] = [5, 0]
 ): Point {
   const lineHeight = getLineHeight(editor);
   const top = lineHeight * (line - 1);
   const [charWidth, charHeight] = getCharacterShape(editor);
   const left = (column - 1) * charWidth;
-  if (bias === "leftTop") return [left, top];
+  const [offsetX, offsetY] = offset;
   if (bias === "fontLeftTop") {
-    return [left, top + (lineHeight - charHeight) / 2];
+    return [left - offsetX, top + (lineHeight - charHeight) / 2 - offsetY];
   }
   if (bias === "fontTop") {
-    return [left + charWidth / 2, top + (lineHeight - charHeight) / 2];
+    return [
+      left + charWidth / 2,
+      top + (lineHeight - charHeight) / 2 - offsetY,
+    ];
   }
   if (bias === "fontBottom") {
-    return [left + charWidth / 2, top + lineHeight];
+    return [
+      left + charWidth / 2,
+      top + (lineHeight + charHeight) / 2 + offsetY,
+    ];
+  }
+  if (bias === "fontLeft") {
+    return [left - offsetX, top + lineHeight / 2];
+  }
+  if (bias === "fontRight") {
+    return [left + charWidth + offsetX, top + lineHeight / 2];
   }
   // center
   return [left + charWidth / 2, top + lineHeight / 2];
