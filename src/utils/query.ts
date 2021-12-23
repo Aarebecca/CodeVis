@@ -1,10 +1,13 @@
 import { config } from "../config";
 import type { AnyObject } from "../types";
 
-export function query(api: string, params: AnyObject<string | AnyObject>) {
+export async function query(
+  api: string,
+  params: AnyObject<string | AnyObject>
+) {
   const url = config.get(api);
   // send post to url with params
-  return fetch(url, {
+  const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -12,7 +15,8 @@ export function query(api: string, params: AnyObject<string | AnyObject>) {
     },
     body: JSON.stringify(params),
     mode: "cors",
-  }).then((response) => response.json());
+  });
+  return await response.json();
 }
 
 export async function queryAsync(api: string, params: AnyObject) {
