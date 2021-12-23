@@ -5,3 +5,8 @@ export type AnyObject<T = string> = {
 export type Point = [number, number];
 
 export type Position = Point;
+
+export type VSPoint = {
+  line: number;
+  column: number;
+};

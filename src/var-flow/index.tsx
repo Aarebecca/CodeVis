@@ -1,18 +1,20 @@
 import * as d3 from "d3";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { bezierPathGenerator } from "./utils";
 import { CodeEditor } from "../editor";
+import { createConnectionPath } from "./utils";
 import { Modal } from "antd";
 import { query } from "../utils";
 import "./style.scss";
 import {
   getLineHeight,
   measureEditorText,
-  lineCol2Offset,
+  lineCol2Position,
 } from "../editor/utils";
 
+import type { Selection } from "d3";
 import type { CodeEditorInstance } from "../editor/types";
 import type { IVarFlow, CodeColor } from "./types";
+import type { Point } from "../types";
 
 const defaultColorClassRuler = (color: string) => {
   return color.replaceAll(", ", "-").replaceAll("(", "-").replaceAll(")", "");
@@ -25,19 +27,46 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
   const varFlowRef = useRef<SVGSVGElement>(null);
   const [dataState, setDataState] = useState<CodeColor[]>();
   const [editorInstance, setEditorInstance] = useState<CodeEditorInstance>();
+  const [flowPathState, setFlowPathState] = useState<
+    Selection<SVGPathElement, unknown, null, undefined>[]
+  >([]);
 
+  /**
+   * query var flow data
+   */
+  useEffect(() => {});
+
+  /**
+   * draw var flow
+   */
   useEffect(() => {
     const svg = d3.select(varFlowRef.current);
-    svg
-      .insert("path")
-      .attr("d", "M 10,234 C 177,234 177,341 344,341")
-      .attr(
-        "style",
-        "fill:none;stroke:white;stroke-width=6px;cursor: default;marker-end: url(#arrow);"
-      );
 
-    console.log(svg);
-  });
+    function removeFlowPath() {
+      flowPathState.forEach((path) => path.remove());
+      setFlowPathState([]);
+    }
+
+    function addFlowPath(from: Point, to: Point) {
+      if (editorInstance && editorInstance.editor) {
+        const path = createConnectionPath(editorInstance.editor, from, to);
+        const pathSelection = svg
+          .insert("path")
+          .attr("d", path)
+          .attr(
+            "style",
+            "fill:none;stroke:red;stroke-width=6px;cursor: default;marker-end: url(#arrow);"
+          );
+        setFlowPathState((curr) => [...curr, pathSelection]);
+      }
+    }
+
+    removeFlowPath();
+    addFlowPath([1, 14], [2, 10]);
+    addFlowPath([2, 14], [2, 20]);
+    return removeFlowPath;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [varFlowRef, editorInstance]);
 
   /**
    * query decorator data
@@ -45,14 +74,21 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
   useEffect(() => {
     const {
       code,
-      nodeColor = { BlockStatement: "yellow", ReturnStatement: "green" },
+      nodeColor = {
+        // BlockStatement: "#f0f2f5",
+        // ReturnStatement: "#ff6c37",
+        // VariableDeclarator: "#e5fff1",
+        VariableDefinition: "red",
+        VariableMention: "green",
+      },
     } = props;
-    query("varFlow", {
+    query("heatMap", {
       code,
       nodeColor,
     }).then(({ status, data, message }) => {
       if (status === "ok") {
         setDataState(data);
+        console.log(data);
       } else {
         Modal.error({
           title: "解析失败",
@@ -95,12 +131,8 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
    */
   useEffect(() => {
     if (!editorInstance) return;
-    console.log("editorInstance", editorInstance);
     const { editor } = editorInstance;
-    console.log("lineHeight", getLineHeight(editor));
-    console.log("characterShape", measureEditorText(editor, " "));
     const layoutInfo = editor.getLayoutInfo();
-    console.log("layoutInfo", layoutInfo);
   }, [editorInstance]);
 
   const svgStyle = useMemo(() => {
@@ -121,7 +153,7 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
       height: `${height}px`,
       left: `${contentLeft}px`,
       top: "0px",
-      backgroundColor: "rgb(255, 0,0,0.5)",
+      // backgroundColor: "rgb(255, 0,0,0.5)",
     };
   }, [editorInstance]);
 
