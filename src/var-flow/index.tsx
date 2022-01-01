@@ -13,7 +13,7 @@ import {
 
 import type { Selection } from "d3";
 import type { CodeEditorInstance } from "../editor/types";
-import type { IVarFlow, CodeColor } from "./types";
+import type { IVarFlow, CodeColor, VarList } from "./types";
 import type { Point } from "../types";
 
 const defaultColorClassRuler = (color: string) => {
@@ -30,11 +30,29 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
   const [flowPathState, setFlowPathState] = useState<
     Selection<SVGPathElement, unknown, null, undefined>[]
   >([]);
+  const [varListState, setVarListState] = useState<VarList>();
 
   /**
    * query var flow data
    */
-  useEffect(() => {});
+  useEffect(() => {
+    query("varList", { code }).then(({ status, data, message }) => {
+      if (status === "ok") {
+        console.log(data);
+
+        setVarListState(data);
+      } else {
+        setVarListState({
+          locList: [],
+          varList: [],
+        });
+        Modal.error({
+          title: "查询变量列表失败",
+          content: message,
+        });
+      }
+    });
+  }, [code]);
 
   /**
    * draw var flow
@@ -62,11 +80,50 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
     }
 
     removeFlowPath();
-    addFlowPath([1, 14], [2, 10]);
-    addFlowPath([2, 14], [2, 20]);
+    // addFlowPath([1, 14], [2, 10]);
+    // addFlowPath([2, 14], [2, 20]);
+
+    /**
+     * 变量的位置由四个值组成
+     * 绘制箭头时取位置的中点
+     */
+    function getMidPos(
+      pos: [number, number, number, number]
+    ): [number, number] {
+      // 不跨行
+      if (pos[0] === pos[2]) {
+        return [pos[0], (pos[1] + pos[3]) / 2];
+      }
+      // 跨行
+      return [pos[2], pos[3] / 2];
+    }
+
+    /**
+     * 分别提取出每个变量的位置
+     */
+    if (varListState) {
+      const varList: { [keys: string]: [number, number, number, number][] } =
+        {};
+      varListState.locList.forEach(({ name, loc }) => {
+        if (!varList[name]) {
+          varList[name] = [];
+        }
+        varList[name].push(loc);
+      });
+      Object.values(varList).forEach((locList) => {
+        if (locList.length > 1) {
+          for (let idx = 0; idx < locList.length - 1; idx++) {
+            const from = getMidPos(locList[idx]);
+            const to = getMidPos(locList[idx + 1]);
+            addFlowPath(from, to);
+          }
+        }
+      });
+    }
+
     return removeFlowPath;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [varFlowRef, editorInstance]);
+  }, [varFlowRef, editorInstance, varListState]);
 
   /**
    * query decorator data
@@ -88,7 +145,6 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
     }).then(({ status, data, message }) => {
       if (status === "ok") {
         setDataState(data);
-        console.log(data);
       } else {
         Modal.error({
           title: "解析失败",
@@ -162,7 +218,7 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
       <div className="var-flow-container var-flow-code-editor-container">
         <CodeEditor
           code={code}
-          lineHeight={50}
+          lineHeight={25}
           fontSize={14}
           decorations={decorators}
           getEditorInstance={setEditorInstance}

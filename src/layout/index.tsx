@@ -10,17 +10,26 @@ const UILayout: React.FC<IUILayout> = (props) => {
   const code = `function f(node) {
   const list = [node];
   const a = 1;
-  const [b, , h=2, [j],...c] = o;
-  const {d, e, g=1, k:{z},...f} = k2;
+  const [b,, h = 2, [j], ...c] = o;
+  const {
+    d,
+    e,
+    g = 1,
+    k: {
+      z
+    },
+    ...f2
+  } = k2;
   let [path, ...rest] = node.parentPath;
   let [pa, ...re] = path;
+
   while (path) {
     list.unshift(path);
     path = path.parentPath;
   }
+
   return list;
-}
-`;
+}`;
 
   return (
     <Layout>
