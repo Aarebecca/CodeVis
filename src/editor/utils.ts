@@ -66,7 +66,7 @@ export function lineCol2Position(
   line: number,
   column: number,
   bias: BiasOptions = "fontLeftTop",
-  offset: [number, number] = [5, 0]
+  offset: [number, number] = [2, 0]
 ): Point {
   const lineHeight = getLineHeight(editor);
   const top = lineHeight * (line - 1);
@@ -79,7 +79,7 @@ export function lineCol2Position(
   if (bias === "fontTop") {
     return [
       left + charWidth / 2,
-      top + (lineHeight - charHeight) / 2 - offsetY,
+      top - offsetY,
     ];
   }
   if (bias === "fontBottom") {
@@ -92,7 +92,7 @@ export function lineCol2Position(
     return [left - offsetX, top + lineHeight / 2];
   }
   if (bias === "fontRight") {
-    return [left + charWidth + offsetX, top + lineHeight / 2];
+    return [left + offsetX, top + lineHeight / 2];
   }
   // center
   return [left + charWidth / 2, top + lineHeight / 2];

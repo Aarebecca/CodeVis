@@ -29,7 +29,6 @@ export type BezierControlPointsGenerator = (
 export type VarList = {
   varList: string[];
   locList: {
-    name: string;
-    loc: [number, number, number, number];
-  }[];
+    [keys: string]: [number, number, number, number][];
+  };
 };

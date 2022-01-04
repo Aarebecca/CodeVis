@@ -1,15 +1,10 @@
 import * as d3 from "d3";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { CodeEditor } from "../editor";
-import { createConnectionPath } from "./utils";
-import { Modal } from "antd";
+import { createConnectionPath, getArrowPos } from "./utils";
+import { message as Message } from "antd";
 import { query } from "../utils";
 import "./style.scss";
-import {
-  getLineHeight,
-  measureEditorText,
-  lineCol2Position,
-} from "../editor/utils";
 
 import type { Selection } from "d3";
 import type { CodeEditorInstance } from "../editor/types";
@@ -43,13 +38,10 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
         setVarListState(data);
       } else {
         setVarListState({
-          locList: [],
+          locList: {},
           varList: [],
         });
-        Modal.error({
-          title: "查询变量列表失败",
-          content: message,
-        });
+        Message.error(`Failed to query variable list: ${message}`);
       }
     });
   }, [code]);
@@ -80,41 +72,15 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
     }
 
     removeFlowPath();
-    // addFlowPath([1, 14], [2, 10]);
-    // addFlowPath([2, 14], [2, 20]);
-
-    /**
-     * 变量的位置由四个值组成
-     * 绘制箭头时取位置的中点
-     */
-    function getMidPos(
-      pos: [number, number, number, number]
-    ): [number, number] {
-      // 不跨行
-      if (pos[0] === pos[2]) {
-        return [pos[0], (pos[1] + pos[3]) / 2];
-      }
-      // 跨行
-      return [pos[2], pos[3] / 2];
-    }
 
     /**
      * 分别提取出每个变量的位置
      */
     if (varListState) {
-      const varList: { [keys: string]: [number, number, number, number][] } =
-        {};
-      varListState.locList.forEach(({ name, loc }) => {
-        if (!varList[name]) {
-          varList[name] = [];
-        }
-        varList[name].push(loc);
-      });
-      Object.values(varList).forEach((locList) => {
+      Object.values(varListState.locList).forEach((locList) => {
         if (locList.length > 1) {
           for (let idx = 0; idx < locList.length - 1; idx++) {
-            const from = getMidPos(locList[idx]);
-            const to = getMidPos(locList[idx + 1]);
+            const { from, to } = getArrowPos(locList[idx], locList[idx + 1]);
             addFlowPath(from, to);
           }
         }
@@ -146,10 +112,7 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
       if (status === "ok") {
         setDataState(data);
       } else {
-        Modal.error({
-          title: "解析失败",
-          content: message,
-        });
+        Message.error(`Parse failed: ${message}`);
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps

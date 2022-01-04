@@ -91,3 +91,44 @@ export function createConnectionPath(
 
   return _createConnectionPath(editor, from, to, direction);
 }
+
+/**
+ * 计算箭头连接点
+ */
+export function getArrowPos(
+  from: [number, number, number, number],
+  to: [number, number, number, number]
+): { from: [number, number]; to: [number, number] } {
+  const mid = (pos: [number, number, number, number]): Point => {
+    // 不跨行
+    if (pos[0] === pos[2]) {
+      return [pos[0], (pos[1] + pos[3] - 1) / 2];
+    }
+    // 跨行
+    return [pos[2], pos[3] / 2];
+  };
+
+  // Identifier 不跨行
+  if (from[0] === from[2] && to[0] === to[2]) {
+    // from to 在同一行
+    if (from[0] === to[0]) {
+      // 判断先后位置
+      const [front, back] = from[1] < to[1] ? [from, to] : [to, from];
+      // 返回 front 右侧，back 左侧
+      return {
+        from: [front[0], front[3]],
+        to: [back[0], back[1]],
+      };
+    }
+  }
+
+  /**
+   * from to 不在同一行
+   * 取中点位置
+   * Identifier 跨行
+   */
+  return {
+    from: mid(from),
+    to: mid(to),
+  };
+}
