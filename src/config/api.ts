@@ -18,5 +18,6 @@ export const config = {
   apis: {
     heatMap: "heat-map",
     varList: "var-list",
+    upload: "function-list",
   },
 };
