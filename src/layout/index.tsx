@@ -1,6 +1,7 @@
 import React from "react";
 import { Layout } from "antd";
 import { VarFlow } from "../var-flow";
+import { Panel } from "../panel";
 import "antd/dist/antd.css";
 const { Header, Footer, Sider, Content } = Layout;
 
@@ -35,9 +36,11 @@ const UILayout: React.FC<IUILayout> = (props) => {
     <Layout>
       <Header>header</Header>
       <Layout>
-        <Sider>left sidebar</Sider>
+        <Sider width="15%">
+          <Panel />
+        </Sider>
         <Content>
-          <div style={{ width: "1000px", height: "800px" }}>
+          <div style={{ width: "600px", height: "900px" }}>
             <VarFlow code={code}></VarFlow>
           </div>
         </Content>
