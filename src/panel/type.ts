@@ -1,16 +1,8 @@
-import type { FunctionList } from "../types";
+import type { FunctionList, SetState, StatementColor } from "../types";
 
-export type PanelProps = {};
 export type PanelUploadProps = {
   onUpload?: (functionList: FunctionList) => void;
 };
-
-export type ListProps = {
-  data?: string[];
-  selectCallback?: (f: string, key: string) => void;
-};
-
-export type PanelConfigProps = {};
 
 export type RGBColor = {
   r: number;
@@ -19,14 +11,7 @@ export type RGBColor = {
   a?: number;
 };
 
-export type StatementColor = {
-  statement: string;
-  color: string;
-};
-
 export type ColorItemsProps = {
   statementColorsState: StatementColor[];
-  setStatementColorsState: React.Dispatch<
-    React.SetStateAction<StatementColor[]>
-  >;
+  setStatementColorsState: SetState<StatementColor[]>;
 };

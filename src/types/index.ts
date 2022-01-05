@@ -16,3 +16,10 @@ export type FunctionList = {
   functions: string[];
   normalized: string[];
 };
+
+export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
+
+export type StatementColor = {
+  statement: string;
+  color: string;
+};

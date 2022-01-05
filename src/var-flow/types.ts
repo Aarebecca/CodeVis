@@ -14,7 +14,7 @@ export type RangeClassColor = {
 
 export interface IVarFlow {
   code: string;
-  nodeColor?: AnyObject;
+  statementColor?: AnyObject;
   lineHeight?: number;
   colorClassNameRule?: (color: string) => string;
 }

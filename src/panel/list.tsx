@@ -1,12 +1,18 @@
 import React, { useState } from "react";
 import { Popover, Switch, Table, Tooltip, Typography } from "antd";
 import { SettingOutlined } from "@ant-design/icons";
-import type { ListProps } from "./type";
+
+import type { SetState } from "../types";
+
+export type ListProps = {
+  functions?: string[];
+  selectCallback?: (f: string, key: string) => void;
+};
 
 const { Text } = Typography;
 
 export const PanelList: React.FC<ListProps> = (props) => {
-  const { data, selectCallback } = props;
+  const { functions, selectCallback } = props;
   const [selectionState, setSelectionState] = useState<
     {
       key: string;
@@ -35,7 +41,7 @@ export const PanelList: React.FC<ListProps> = (props) => {
 
   return (
     <Table
-      dataSource={data?.map((item, idx) => {
+      dataSource={functions?.map((item, idx) => {
         return {
           key: String(idx),
           _function: item,
@@ -51,10 +57,13 @@ export const PanelList: React.FC<ListProps> = (props) => {
   );
 };
 
-export const CollapseFilter = (
-  filterState: boolean,
-  setFilterState: React.Dispatch<React.SetStateAction<boolean>>
-) => {
+export type CollapseFilterProps = {
+  filterState: boolean;
+  setFilterState: SetState<boolean>;
+};
+
+export const CollapseFilter: React.FC<CollapseFilterProps> = (props) => {
+  const { filterState, setFilterState } = props;
   const onFilterChange = (checked: boolean, event: MouseEvent) => {
     event.stopPropagation();
     setFilterState(checked);

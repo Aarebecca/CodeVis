@@ -33,8 +33,6 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
   useEffect(() => {
     query("varList", { code }).then(({ status, data, message }) => {
       if (status === "ok") {
-        console.log(data);
-
         setVarListState(data);
       } else {
         setVarListState({
@@ -97,7 +95,7 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
   useEffect(() => {
     const {
       code,
-      nodeColor = {
+      statementColor = {
         // BlockStatement: "#f0f2f5",
         // ReturnStatement: "#ff6c37",
         // VariableDeclarator: "#e5fff1",
@@ -107,7 +105,7 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
     } = props;
     query("heatMap", {
       code,
-      nodeColor,
+      nodeColor: statementColor,
     }).then(({ status, data, message }) => {
       if (status === "ok") {
         setDataState(data);
@@ -116,7 +114,7 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [varFlowRef, code, props.nodeColor]);
+  }, [varFlowRef, code, props.statementColor]);
 
   const decorators = useMemo(() => {
     if (!dataState) return [];
