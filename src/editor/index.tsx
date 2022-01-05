@@ -3,14 +3,14 @@ import React, { useRef, useState, useEffect } from "react";
 import { Spin } from "antd";
 import Editor from "@monaco-editor/react";
 
-import type { ICodeEditor, Monaco, EditorOptions } from "./types";
+import type { ICodeEditor, Monaco, EditorProps } from "./types";
 
 /**
  * Monaco editor
- * @param props EditorOptions
+ * @param props EditorProps
  * @returns Editor
  */
-const CodeEditor: React.FC<EditorOptions> = (props) => {
+const CodeEditor: React.FC<EditorProps> = (props) => {
   const editorRef = useRef<ICodeEditor | null>(null);
   const [editorState, setEditorState] = useState<ICodeEditor>();
   const [monacoState, setMonacoState] = useState<Monaco>();
@@ -90,7 +90,12 @@ const CodeEditor: React.FC<EditorOptions> = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.decorations, editorState, monacoState]);
 
-  const { code = "", lineHeight = 19, fontSize = 14, theme = "light" } = props;
+  const { code, lineHeight = 19, fontSize = 14, theme = "light" } = props;
+
+  useEffect(() => {
+    editorState?.getModel()?.setValue(code);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code]);
 
   /**
    * 编辑器构成

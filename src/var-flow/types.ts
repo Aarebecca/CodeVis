@@ -12,7 +12,7 @@ export type RangeClassColor = {
   glyphMarginClassName: string;
 };
 
-export interface IVarFlow {
+export interface VarFlowProps {
   code: string;
   statementColor?: AnyObject;
   lineHeight?: number;

@@ -19,7 +19,7 @@ export type CodeEditorInstance = {
   monaco: Monaco;
 };
 
-export interface EditorOptions {
+export interface EditorProps {
   code: string;
   lineHeight?: number;
   fontSize?: number;
