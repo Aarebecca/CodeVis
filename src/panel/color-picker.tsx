@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Modal, Select, Tag } from "antd";
+import { Col, Modal, Row, Select, Tag } from "antd";
 import { CompactPicker } from "react-color";
 import Color from "color";
 import STATEMENT from "../config/statement.json";
@@ -101,10 +101,18 @@ export const ColorItems: React.FC<ColorItemsProps> = (props) => {
     // omit the statement that is already in the list
     return (
       <Select
+        showSearch
         defaultValue={statementUnused[0]}
         onChange={(statement: string) => {
           setStatementState(statement);
         }}
+        optionFilterProp="children"
+        filterOption={(input: string, option: any) => {
+          return (
+            option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+          );
+        }}
+        style={{ width: 200 }}
       >
         {statementUnused.map((statement) => (
           <Option value={statement} key={statement}>
@@ -117,7 +125,7 @@ export const ColorItems: React.FC<ColorItemsProps> = (props) => {
 
   const editSelection = () => {
     return (
-      <Select defaultValue={statementState} disabled>
+      <Select defaultValue={statementState} style={{ width: 200 }} disabled>
         <Option value={statementState} key={statementState}>
           {statementState}
         </Option>
@@ -130,6 +138,7 @@ export const ColorItems: React.FC<ColorItemsProps> = (props) => {
       {statementColorsState.map(({ statement, color }) => {
         return (
           <Tag
+            closable
             key={statement}
             color={color}
             onClick={() => onEditTag(statement, color)}
@@ -137,6 +146,7 @@ export const ColorItems: React.FC<ColorItemsProps> = (props) => {
               e.preventDefault();
               removeStatementColor(statement);
             }}
+            style={{ margin: "1px 2px 1px 0px" }}
           >
             {statement}
           </Tag>
@@ -147,20 +157,23 @@ export const ColorItems: React.FC<ColorItemsProps> = (props) => {
       </Tag>
       {showColorPickerState ? (
         <Modal
-          title={
-            // statementState ? `${statementState} - Color Picker` : "Color Picker"
-            ""
-          }
+          title={"Statement Color"}
           onOk={handleOk}
           onCancel={handleCancel}
           visible={showColorPickerState}
         >
-          {modeState === "add" ? addSelection() : editSelection()}
-          <CompactPicker
-            onChangeComplete={(color) => {
-              setChooseColorState(color.rgb);
-            }}
-          />
+          <Row>
+            <Col span={8}>
+              {modeState === "add" ? addSelection() : editSelection()}
+            </Col>
+            <Col span={16} style={{ textAlign: "right" }}>
+              <CompactPicker
+                onChangeComplete={(color) => {
+                  setChooseColorState(color.rgb);
+                }}
+              />
+            </Col>
+          </Row>
         </Modal>
       ) : null}
     </div>
