@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { Collapse, Typography } from "antd";
 import { PanelUpload } from "./upload";
 import { PanelList, CollapseFilter } from "./list";
-import { PanelConfig } from "./configuration";
+import { PanelEditorConfig } from "./code-view";
+import { VariableFlow } from "./var-flow";
 
 import {
   AppstoreOutlined,
-  CaretRightOutlined,
+  createFromIconfontCN,
   CloudUploadOutlined,
   EditOutlined,
   FileTextOutlined,
@@ -14,102 +15,170 @@ import {
   UnorderedListOutlined,
 } from "@ant-design/icons";
 
-import type { CollapseProps } from "antd";
-import type { FunctionList } from "../types";
-import type { PanelProps } from "./type";
+import type { FunctionList, SetState } from "../types";
+import type { VariableFlowProps } from "./var-flow";
+import type { CollapseFilterProps } from "./list";
+import type { PanelEditorConfigProps } from "./code-view";
+
+export type PanelProps = {
+  functionsState: FunctionList;
+  setFunctionsState: SetState<FunctionList>;
+  codeState: string;
+  setCodeState: SetState<string>;
+  filterState: CollapseFilterProps["filterState"];
+  setFilterState: CollapseFilterProps["setFilterState"];
+  lineHeightRange: PanelEditorConfigProps["lineHeightRange"];
+  lineHeightState: PanelEditorConfigProps["lineHeightState"];
+  setLineHeightState: PanelEditorConfigProps["setLineHeightState"];
+  varFlowEnableState: VariableFlowProps["varFlowEnableState"];
+  setVarFlowEnableState: VariableFlowProps["setVarFlowEnableState"];
+  varFlowHighlightState: VariableFlowProps["varFlowHighlightState"];
+  setVarFlowHighlightState: VariableFlowProps["setVarFlowHighlightState"];
+  statementColorsState: VariableFlowProps["statementColorsState"];
+  setStatementColorsState: VariableFlowProps["setStatementColorsState"];
+};
 
 const { Text } = Typography;
 const { Panel: CollapsePanel } = Collapse;
 
+const IconFont = createFromIconfontCN({
+  scriptUrl: ["//at.alicdn.com/t/font_3119243_uisd32hn8bm.js"],
+});
+
 export const Panel: React.FC<PanelProps> = (props) => {
-  const [functionListState, setFunctionListState] = useState<FunctionList>();
-  const [filterState, setFilterState] = useState<boolean>(false);
+  const {
+    functionsState,
+    setFunctionsState,
+    setCodeState,
+    filterState,
+    setFilterState,
+    lineHeightRange,
+    lineHeightState,
+    setLineHeightState,
+    varFlowEnableState,
+    setVarFlowEnableState,
+    varFlowHighlightState,
+    setVarFlowHighlightState,
+    statementColorsState,
+    setStatementColorsState,
+  } = props;
 
-  const expandIcon: CollapseProps["expandIcon"] = ({ isActive }) => (
-    <CaretRightOutlined rotate={isActive ? 90 : 0} />
-  );
-
-  return (
-    <Collapse expandIcon={expandIcon}>
-      <CollapsePanel
-        header={
-          <Text>
-            <CloudUploadOutlined />
-            {" Upload"}
-          </Text>
-        }
-        key="1"
-        showArrow={false}
-      >
+  const components: {
+    header: {
+      icon: React.ReactNode;
+      title: string;
+    };
+    content: React.ReactNode;
+    props?: {
+      [keys: string]: any;
+    };
+  }[] = [
+    {
+      header: {
+        icon: <CloudUploadOutlined />,
+        title: "Upload",
+      },
+      content: (
         <PanelUpload
           onUpload={(functionList) => {
-            setFunctionListState(functionList);
+            setFunctionsState(functionList);
           }}
         />
-      </CollapsePanel>
-      <CollapsePanel
-        header={
-          <Text>
-            <UnorderedListOutlined />
-            {" Function List"}
-          </Text>
-        }
-        key="2"
-        showArrow={false}
-        extra={CollapseFilter(filterState, setFilterState)}
-      >
+      ),
+      props: {
+        style: { textAlign: "center" },
+      },
+    },
+    {
+      header: {
+        icon: <UnorderedListOutlined />,
+        title: "Function List",
+      },
+      content: (
         <PanelList
-          data={functionListState?.[filterState ? "available" : "functions"]}
+          functions={functionsState?.[filterState ? "available" : "functions"]}
+          selectCallback={(functionName, key) => {
+            setCodeState(key);
+          }}
         />
-      </CollapsePanel>
-      <CollapsePanel
-        header={
-          <Text>
-            <FileTextOutlined />
-            {" Configuration"}
-          </Text>
-        }
-        key="3"
-        showArrow={false}
-      >
-        <PanelConfig />
-      </CollapsePanel>
-      <CollapsePanel
-        header={
-          <Text>
-            <SyncOutlined />
-            {" Life Cycle"}
-          </Text>
-        }
-        key="4"
-        showArrow={false}
-      >
-        CollapsePanel
-      </CollapsePanel>
-      <CollapsePanel
-        header={
-          <Text>
-            <AppstoreOutlined />
-            {" Phenogram"}
-          </Text>
-        }
-        key="5"
-        showArrow={false}
-      >
-        CollapsePanel
-      </CollapsePanel>
-      <CollapsePanel
-        header={
-          <Text>
-            <EditOutlined />
-            {" Conclusion"}
-          </Text>
-        }
-        key="6"
-        showArrow={false}
-      >
-        CollapsePanel
-      </CollapsePanel>
+      ),
+      props: {
+        extra: <CollapseFilter {...{ filterState, setFilterState }} />,
+      },
+    },
+    {
+      header: {
+        icon: <FileTextOutlined />,
+        title: "Editor Config",
+      },
+      content: (
+        <PanelEditorConfig
+          {...{
+            lineHeightRange,
+            lineHeightState,
+            setLineHeightState,
+          }}
+        />
+      ),
+    },
+    {
+      header: {
+        icon: <IconFont type="icon-curve-" />,
+        title: "Variable Flow",
+      },
+      content: (
+        <VariableFlow
+          {...{
+            varFlowEnableState,
+            setVarFlowEnableState,
+            varFlowHighlightState,
+            setVarFlowHighlightState,
+            statementColorsState,
+            setStatementColorsState,
+          }}
+        />
+      ),
+    },
+    {
+      header: {
+        icon: <SyncOutlined />,
+        title: "Life Cycle",
+      },
+      content: "CollapsePanel",
+    },
+    {
+      header: {
+        icon: <AppstoreOutlined />,
+        title: "Phenogram",
+      },
+      content: "CollapsePanel",
+    },
+    {
+      header: {
+        icon: <EditOutlined />,
+        title: "Conclusion",
+      },
+      content: "CollapsePanel",
+    },
+  ];
+
+  return (
+    <Collapse style={{ userSelect: "none" }}>
+      {components.map(({ header: { icon, title }, content, props }, idx) => (
+        <CollapsePanel
+          header={
+            <Text>
+              {icon}
+              {` ${title}`}
+            </Text>
+          }
+          key={String(idx)}
+          showArrow={false}
+          {...props}
+        >
+          {content}
+        </CollapsePanel>
+      ))}
     </Collapse>
   );
 };
