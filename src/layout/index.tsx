@@ -11,30 +11,6 @@ const { Header, Footer, Sider, Content } = Layout;
 export type UILayoutProps = {};
 
 const UILayout: React.FC<UILayoutProps> = (props) => {
-  const code = `function f(node) {
-  const list = [node];
-  const a = 1;
-  const [b,, h = 2, [j], ...c] = o;
-  const {
-    d,
-    e,
-    g = 1,
-    k: {
-      z
-    },
-    ...f2
-  } = k2;
-  let [path, ...rest] = node.parentPath;
-  let [pa, ...re] = path;
-
-  while (path) {
-    list.unshift(path);
-    path = path.parentPath;
-  }
-
-  return list;
-}`;
-
   // the functions parse from uploaded file
   const [functionsState, setFunctionsState] = useState<FunctionList>({
     available: [],
@@ -46,7 +22,7 @@ const UILayout: React.FC<UILayoutProps> = (props) => {
   const [codeState, setCodeState] = useState<string>("");
 
   // the filter switch state of function list
-  const [filterState, setFilterState] = useState<boolean>(false);
+  const [filterState, setFilterState] = useState<boolean>(true);
 
   const lineHeightRange: [number, number] = [10, 30];
   // the line height of the code editor
@@ -81,11 +57,17 @@ const UILayout: React.FC<UILayoutProps> = (props) => {
     setStatementColorsState,
   };
 
-  // const codeStr = useMemo(() => {
-  //   if (formatterState) {
-  //     // return functionsState.functions[codeState].formatted;
-  //   }
-  // }, [functionsState, codeState, formatterState]);
+  useEffect(() => {
+    setCodeState("");
+  }, [functionsState]);
+
+  const codeStr = useMemo(() => {
+    const index = functionsState.functions.indexOf(codeState);
+    if (index === -1) {
+      return "";
+    }
+    return functionsState.normalized[index];
+  }, [functionsState, codeState]);
 
   return (
     <Layout>
@@ -95,8 +77,8 @@ const UILayout: React.FC<UILayoutProps> = (props) => {
           <Panel {...panelProps} />
         </Sider>
         <Content>
-          <div style={{ width: "600px", height: "900px" }}>
-            <VarFlow code={code}></VarFlow>
+          <div style={{ width: "800px", height: "900px" }}>
+            <VarFlow code={codeStr}></VarFlow>
           </div>
         </Content>
         <Sider>right sidebar</Sider>
