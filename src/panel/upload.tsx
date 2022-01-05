@@ -17,6 +17,9 @@ export const PanelUpload: React.FC<PanelUploadProps> = (props) => {
     name: "file",
     action: config.get("upload"),
     fileList: fileListState,
+    data: {
+      prettier: 1,
+    },
     onChange(info: UploadChangeParam) {
       const { file, fileList } = info;
       const { status, name } = file;

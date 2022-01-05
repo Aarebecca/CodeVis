@@ -43,7 +43,7 @@ export const PanelList: React.FC<ListProps> = (props) => {
     <Table
       dataSource={functions?.map((item, idx) => {
         return {
-          key: String(idx),
+          key: item,
           _function: item,
         };
       })}

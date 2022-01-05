@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Collapse, Typography } from "antd";
 import { PanelUpload } from "./upload";
 import { PanelList, CollapseFilter } from "./list";
@@ -62,6 +62,7 @@ export const Panel: React.FC<PanelProps> = (props) => {
     statementColorsState,
     setStatementColorsState,
   } = props;
+  
 
   const components: {
     header: {
@@ -97,8 +98,8 @@ export const Panel: React.FC<PanelProps> = (props) => {
       content: (
         <PanelList
           functions={functionsState?.[filterState ? "available" : "functions"]}
-          selectCallback={(functionName, key) => {
-            setCodeState(key);
+          selectCallback={(_function, key) => {
+            setCodeState(_function);
           }}
         />
       ),
