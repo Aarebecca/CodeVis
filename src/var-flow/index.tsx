@@ -8,40 +8,45 @@ import "./style.scss";
 
 import type { Selection } from "d3";
 import type { CodeEditorInstance } from "../editor/types";
-import type { IVarFlow, CodeColor, VarList } from "./types";
+import type { VarFlowProps, CodeColor, VarList } from "./types";
 import type { Point } from "../types";
 
 const defaultColorClassRuler = (color: string) => {
   return color.replaceAll(", ", "-").replaceAll("(", "-").replaceAll(")", "");
 };
 
-const VarFlow: React.FC<IVarFlow> = (props) => {
+const VarFlow: React.FC<VarFlowProps> = (props) => {
   const { code } = props;
   const { colorClassNameRule = defaultColorClassRuler } = props;
 
   const varFlowRef = useRef<SVGSVGElement>(null);
-  const [dataState, setDataState] = useState<CodeColor[]>();
+  const [decoratorsDataState, setDecoratorsDataState] = useState<CodeColor[]>();
   const [editorInstance, setEditorInstance] = useState<CodeEditorInstance>();
   const [flowPathState, setFlowPathState] = useState<
     Selection<SVGPathElement, unknown, null, undefined>[]
   >([]);
-  const [varListState, setVarListState] = useState<VarList>();
+  const defaultVarList = {
+    locList: {},
+    varList: [],
+  };
+  const [varListState, setVarListState] = useState<VarList>(defaultVarList);
 
   /**
    * query var flow data
    */
   useEffect(() => {
-    query("varList", { code }).then(({ status, data, message }) => {
-      if (status === "ok") {
-        setVarListState(data);
-      } else {
-        setVarListState({
-          locList: {},
-          varList: [],
-        });
-        Message.error(`Failed to query variable list: ${message}`);
-      }
-    });
+    if (code !== "") {
+      query("varList", { code }).then(({ status, data, message }) => {
+        if (status === "ok") {
+          setVarListState(data);
+        } else {
+          setVarListState(defaultVarList);
+          Message.error(`Failed to query variable list: ${message}`);
+        }
+      });
+    } else {
+      setVarListState(defaultVarList);
+    }
   }, [code]);
 
   /**
@@ -74,6 +79,7 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
     /**
      * 分别提取出每个变量的位置
      */
+
     if (varListState) {
       Object.values(varListState.locList).forEach((locList) => {
         if (locList.length > 1) {
@@ -103,22 +109,24 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
         VariableMention: "green",
       },
     } = props;
-    query("heatMap", {
-      code,
-      nodeColor: statementColor,
-    }).then(({ status, data, message }) => {
-      if (status === "ok") {
-        setDataState(data);
-      } else {
-        Message.error(`Parse failed: ${message}`);
-      }
-    });
+    if (code !== "") {
+      query("heatMap", {
+        code,
+        nodeColor: statementColor,
+      }).then(({ status, data, message }) => {
+        if (status === "ok") {
+          setDecoratorsDataState(data);
+        } else {
+          Message.error(`Parse failed: ${message}`);
+        }
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [varFlowRef, code, props.statementColor]);
 
   const decorators = useMemo(() => {
-    if (!dataState) return [];
-    return dataState.map((item) => {
+    if (!decoratorsDataState) return [];
+    return decoratorsDataState.map((item) => {
       const { range, color } = item;
       const className = colorClassNameRule(color);
       return {
@@ -126,22 +134,22 @@ const VarFlow: React.FC<IVarFlow> = (props) => {
         className,
       };
     });
-  }, [colorClassNameRule, dataState]);
+  }, [colorClassNameRule, decoratorsDataState]);
 
   /**
    * create decorators css
    */
   const css = useMemo(() => {
-    if (!dataState) return;
+    if (!decoratorsDataState) return;
     const colorClassList = Array.from(
-      new Set(dataState.map((item) => item.color))
+      new Set(decoratorsDataState.map((item) => item.color))
     );
     return colorClassList
       .map((color) => {
         return `.${colorClassNameRule(color)} { background: ${color}; }`;
       })
       .join("\n");
-  }, [colorClassNameRule, dataState]);
+  }, [colorClassNameRule, decoratorsDataState]);
 
   /**
    * get editor information
