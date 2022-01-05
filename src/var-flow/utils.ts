@@ -112,12 +112,17 @@ export function getArrowPos(
   if (from[0] === from[2] && to[0] === to[2]) {
     // from to 在同一行
     if (from[0] === to[0]) {
-      // 判断先后位置
-      const [front, back] = from[1] < to[1] ? [from, to] : [to, from];
-      // 返回 front 右侧，back 左侧
+      // 从左向右
+      if (from[1] < to[1]) {
+        return {
+          from: [from[0], from[3]],
+          to: [to[0], to[1]],
+        };
+      }
+      // 从右向左
       return {
-        from: [front[0], front[3]],
-        to: [back[0], back[1]],
+        from: [from[0], from[1]],
+        to: [to[0], to[3]],
       };
     }
   }
