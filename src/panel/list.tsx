@@ -47,6 +47,7 @@ export const PanelList: React.FC<ListProps> = (props) => {
           _function: item,
         };
       })}
+      showHeader={false}
       columns={columns}
       rowSelection={{
         type: "radio",

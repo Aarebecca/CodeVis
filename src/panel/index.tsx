@@ -62,7 +62,6 @@ export const Panel: React.FC<PanelProps> = (props) => {
     statementColorsState,
     setStatementColorsState,
   } = props;
-  
 
   const components: {
     header: {

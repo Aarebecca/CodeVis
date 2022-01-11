@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Layout } from "antd";
+import { Col, Row, Layout } from "antd";
 import { VarFlow } from "../var-flow";
 import { Panel } from "../panel";
+import { LifeCycle } from "../lifecycle";
 import "antd/dist/antd.css";
 
 import type { FunctionList, StatementColor } from "../types";
@@ -77,9 +78,14 @@ const UILayout: React.FC<UILayoutProps> = (props) => {
           <Panel {...panelProps} />
         </Sider>
         <Content>
-          <div style={{ width: "800px", height: "900px" }}>
-            <VarFlow code={codeStr}></VarFlow>
-          </div>
+          <Row style={{ height: "900px" }}>
+            <Col span={12}>
+              <VarFlow code={codeStr}></VarFlow>
+            </Col>
+            <Col span={12}>
+              <LifeCycle />
+            </Col>
+          </Row>
         </Content>
         <Sider>right sidebar</Sider>
       </Layout>
