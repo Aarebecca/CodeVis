@@ -83,7 +83,87 @@ const UILayout: React.FC<UILayoutProps> = (props) => {
               <VarFlow code={codeStr}></VarFlow>
             </Col>
             <Col span={12}>
-              <LifeCycle />
+              <LifeCycle
+                maxLine={10}
+                colorMap={{
+                  A: "red",
+                  B: "green",
+                  C: "blue",
+                  D: "pink",
+                  E: "yellow",
+                  EA: "#3f32a6",
+                  EB: "#3ff2a0",
+                  F: "orange",
+                  FA: "#12faff",
+                  FAA: "#681234",
+                  FAB: "#fa0313",
+                  G: "purple",
+                }}
+                data={{
+                  node: { start: 1, end: 8, type: "A" }, // depth 1
+                  // collapse: false,
+                  children: [
+                    {
+                      node: { start: 2, end: 2, type: "B" }, // depth 2
+                      // collapse: false,
+                      children: [],
+                    },
+                    {
+                      node: { start: 2, end: 2, type: "C" }, // depth 2
+                      // collapse: true,
+                      children: [],
+                    },
+                    {
+                      node: { start: 3, end: 3, type: "D" }, // depth 2
+                      // collapse: true,
+                      children: [],
+                    },
+                    {
+                      node: { start: 4, end: 5, type: "E" }, // depth 2
+                      // collapse: false,
+                      children: [
+                        {
+                          node: { start: 5, end: 5, type: "EA" }, // depth 2
+                          // collapse: true,
+                          children: [],
+                        },
+                        {
+                          node: { start: 5, end: 5, type: "EB" }, // depth 2
+                          // collapse: false,
+                          children: [],
+                        },
+                      ],
+                    },
+                    {
+                      node: { start: 4, end: 5, type: "F" }, // depth 2
+                      collapse: false,
+                      children: [
+                        {
+                          node: { start: 5, end: 5, type: "FA" }, // depth 2
+                          // collapse: false,
+                          children: [
+                            {
+                              node: { start: 5, end: 5, type: "FAA" }, // depth 2
+                              // collapse: false,
+                              children: [],
+                            },
+                            {
+                              node: { start: 5, end: 5, type: "FAB" }, // depth 2
+                              // collapse: true,
+                              children: [],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      node: { start: 7, end: 8, type: "G" }, // depth 2
+                      // collapse: true,
+                      children: [],
+                    },
+                  ],
+                }}
+              />
             </Col>
           </Row>
         </Content>

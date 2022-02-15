@@ -27,7 +27,7 @@ describe("LifeCycleDiagram", () => {
   });
 
   test("one", () => {
-    const config = {
+    const data = {
       node: { start: 1, end: 5, type: "A" }, // depth 1
       children: [
         {
@@ -48,18 +48,18 @@ describe("LifeCycleDiagram", () => {
     };
 
     // @ts-ignore
-    const mat = new LifeCycleDiagram({ maxLine: 5 }).mixMat(config);
-    expect(mat).toStrictEqual([
-      [["A"]],
-      [["A", "B"]],
-      [["A", "B", "C", "D"]],
-      [["A", "B"]],
-      [["A"]],
+    const { typeMat } = new LifeCycleDiagram({ maxLine: 5 }).generate(data);
+    expect(typeMat).toStrictEqual([
+      [["root", "A"]],
+      [["root", "A", "B"]],
+      [["root", "A", "B", "C", "D"]],
+      [["root", "A", "B"]],
+      [["root", "A"]],
     ]);
   });
 
   test("one by one", () => {
-    const config = {
+    const data = {
       node: { start: 1, end: 5, type: "A" }, // depth 1
       children: [
         {
@@ -78,18 +78,18 @@ describe("LifeCycleDiagram", () => {
     };
 
     // @ts-ignore
-    const mat = new LifeCycleDiagram({ maxLine: 5 }).mixMat(config);
-    expect(mat).toStrictEqual([
-      [["A"]],
-      [["A", "B"]],
-      [["A", "C"]],
-      [["A", "D"]],
-      [["A"]],
+    const { typeMat } = new LifeCycleDiagram({ maxLine: 5 }).generate(data);
+    expect(typeMat).toStrictEqual([
+      [["root", "A"]],
+      [["root", "A", "B"]],
+      [["root", "A", "C"]],
+      [["root", "A", "D"]],
+      [["root", "A"]],
     ]);
   });
 
   test("one tow one", () => {
-    const config = {
+    const data = {
       node: { start: 1, end: 5, type: "A" }, // depth 1
       children: [
         {
@@ -108,25 +108,33 @@ describe("LifeCycleDiagram", () => {
     };
 
     // @ts-ignore
-    const mat = new LifeCycleDiagram({ maxLine: 5 }).mixMat(config);
-    console.log(mat);
-    expect(mat).toStrictEqual([
-      [["A"], ["A"]],
+    const { typeMat } = new LifeCycleDiagram({ maxLine: 5 }).generate(data);
+    expect(typeMat).toStrictEqual([
       [
-        ["A", "B"],
-        ["A", "C"],
+        ["root", "A"],
+        ["root", "A"],
       ],
       [
-        ["A", "D"],
-        ["A", "D"],
+        ["root", "A", "B"],
+        ["root", "A", "C"],
       ],
-      [["A"], ["A"]],
-      [["A"], ["A"]],
+      [
+        ["root", "A", "D"],
+        ["root", "A", "D"],
+      ],
+      [
+        ["root", "A"],
+        ["root", "A"],
+      ],
+      [
+        ["root", "A"],
+        ["root", "A"],
+      ],
     ]);
   });
 
   test("case1", () => {
-    const config = {
+    const data = {
       node: { start: 1, end: 9, type: "A" }, // depth 1
       children: [
         {
@@ -177,81 +185,146 @@ describe("LifeCycleDiagram", () => {
     };
 
     // @ts-ignore
-    const mat = new LifeCycleDiagram({}).mixMat(config);
-    expect(mat).toStrictEqual([
+    const { typeMat } = new LifeCycleDiagram({}).generate(data);
+    expect(typeMat).toStrictEqual([
       [
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
       ],
       [
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
       ],
       [
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
       ],
       [
-        ["A", "B", "C", "D"],
-        ["A", "B", "C", "D"],
-        ["A", "B", "C", "D"],
-        ["A", "B", "C", "D"],
-        ["A", "B", "E", "F", "G"],
-        ["A", "B", "E", "F", "H"],
-        ["A", "B", "E", "I"],
-        ["A", "B", "E", "I"],
+        ["root", "A", "B", "C", "D"],
+        ["root", "A", "B", "C", "D"],
+        ["root", "A", "B", "C", "D"],
+        ["root", "A", "B", "C", "D"],
+        ["root", "A", "B", "E", "F", "G"],
+        ["root", "A", "B", "E", "F", "H"],
+        ["root", "A", "B", "E", "I"],
+        ["root", "A", "B", "E", "I"],
       ],
       [
-        ["A", "B", "E", "J"],
-        ["A", "B", "E", "J"],
-        ["A", "B", "E", "J"],
-        ["A", "B", "E", "J"],
-        ["A", "B", "E", "K"],
-        ["A", "B", "E", "K"],
-        ["A", "B", "E", "K"],
-        ["A", "B", "E", "K"],
+        ["root", "A", "B", "E", "J"],
+        ["root", "A", "B", "E", "J"],
+        ["root", "A", "B", "E", "J"],
+        ["root", "A", "B", "E", "J"],
+        ["root", "A", "B", "E", "K"],
+        ["root", "A", "B", "E", "K"],
+        ["root", "A", "B", "E", "K"],
+        ["root", "A", "B", "E", "K"],
       ],
       [
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
       ],
       [
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
-        ["A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
+        ["root", "A", "B"],
       ],
-      [["A"], ["A"], ["A"], ["A"], ["A"], ["A"], ["A"], ["A"]],
-      [["A"], ["A"], ["A"], ["A"], ["A"], ["A"], ["A"], ["A"]],
-      [["A"], ["A"], ["A"], ["A"], ["A"], ["A"], ["A"], ["A"]],
+      [
+        ["root", "A"],
+        ["root", "A"],
+        ["root", "A"],
+        ["root", "A"],
+        ["root", "A"],
+        ["root", "A"],
+        ["root", "A"],
+        ["root", "A"],
+      ],
+      [
+        ["root", "A"],
+        ["root", "A"],
+        ["root", "A"],
+        ["root", "A"],
+        ["root", "A"],
+        ["root", "A"],
+        ["root", "A"],
+        ["root", "A"],
+      ],
+      [
+        ["root"],
+        ["root"],
+        ["root"],
+        ["root"],
+        ["root"],
+        ["root"],
+        ["root"],
+        ["root"],
+      ],
+    ]);
+  });
+
+  test("color matrix", () => {
+    const data = {
+      node: { start: 1, end: 5, type: "A" }, // depth 1
+      children: [
+        {
+          node: { start: 2, end: 2, type: "B" }, // depth 2
+          children: [],
+        },
+        {
+          node: { start: 2, end: 2, type: "C" }, // depth 2
+          children: [],
+        },
+        {
+          node: { start: 3, end: 3, type: "D" }, // depth 2
+          children: [],
+        },
+      ],
+    };
+
+    const lc = new LifeCycleDiagram({
+      maxLine: 5,
+      colorMap: {
+        A: "rgb(100, 100, 100)",
+        B: "rgb(200, 200, 200)",
+        C: "rgb(0, 0,0)",
+        D: "rgb(50, 50, 50)",
+      },
+    });
+    const { colorMat } = lc.generate(data);
+    expect(colorMat).toStrictEqual([
+      ["rgb(100, 100, 100)", "rgb(100, 100, 100)"],
+      ["rgb(150, 150, 150)", "rgb(50, 50, 50)"],
+      ["rgb(75, 75, 75)", "rgb(75, 75, 75)"],
+      ["rgb(100, 100, 100)", "rgb(100, 100, 100)"],
+      ["rgb(100, 100, 100)", "rgb(100, 100, 100)"],
     ]);
   });
 });
