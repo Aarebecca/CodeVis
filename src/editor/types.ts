@@ -23,7 +23,7 @@ export interface EditorProps {
   code: string;
   lineHeight?: number;
   fontSize?: number;
-  theme?: "light" | "vs-dark";
+  theme: "light" | "vs-dark";
   decorations?: Decoration[];
   getEditorInstance?: React.Dispatch<
     React.SetStateAction<CodeEditorInstance | undefined>

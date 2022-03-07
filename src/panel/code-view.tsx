@@ -1,26 +1,34 @@
 import React from "react";
-import { Col, Form, InputNumber, Row, Slider, Switch, Tooltip } from "antd";
+import { Col, Form, InputNumber, Row, Slider, Select, Tooltip } from "antd";
 
 import type { SetState } from "../types";
+import type { EditorProps } from "../editor/types";
 
 export type SliderInputNumberProps = {
   range: [number, number];
-  lineHeightState: number;
-  setLineHeightState: SetState<number>;
+  value: number;
+  setValue: SetState<number>;
 };
 export type PanelEditorConfigProps = {
+  themeState: EditorProps["theme"];
+  setThemeState: SetState<EditorProps["theme"]>;
+  fontSizeState: number;
+  fontSizeRange: [number, number];
+  setFontSizeState: SetState<number>;
   lineHeightRange: [number, number];
-  lineHeightState: SliderInputNumberProps["lineHeightState"];
-  setLineHeightState: SliderInputNumberProps["setLineHeightState"];
+  lineHeightState: number;
+  setLineHeightState: SetState<number>;
 };
 
 const { Item } = Form;
 
+const { Option } = Select;
+
 const SliderInputNumber = (props: SliderInputNumberProps) => {
   const {
     range: [min, max],
-    lineHeightState: value,
-    setLineHeightState: setValue,
+    value,
+    setValue,
   } = props;
 
   const onChange = (value: number) => {
@@ -47,6 +55,11 @@ const SliderInputNumber = (props: SliderInputNumberProps) => {
 
 export const PanelEditorConfig: React.FC<PanelEditorConfigProps> = (props) => {
   const {
+    themeState,
+    setThemeState,
+    fontSizeState,
+    fontSizeRange,
+    setFontSizeState,
     lineHeightRange,
     lineHeightState,
     setLineHeightState,
@@ -58,10 +71,42 @@ export const PanelEditorConfig: React.FC<PanelEditorConfigProps> = (props) => {
         wrapperCol={{ span: 14 }}
         layout="horizontal"
       >
+        <Item label="Font Size">
+          <SliderInputNumber
+            {...{
+              range: fontSizeRange,
+              value: fontSizeState,
+              setValue: setFontSizeState,
+            }}
+          />
+        </Item>
         <Item label="Line Height">
           <SliderInputNumber
-            {...{ range: lineHeightRange, lineHeightState, setLineHeightState }}
+            {...{
+              range: lineHeightRange,
+              value: lineHeightState,
+              setValue: setLineHeightState,
+            }}
           />
+        </Item>
+        <Item
+          label={
+            <Tooltip title="Theme of the code editor" placement="topLeft">
+              {"Theme"}
+            </Tooltip>
+          }
+        >
+          <Select
+            defaultValue={themeState}
+            onChange={(val) => {
+              setThemeState(val);
+            }}
+          >
+            <Option key={"light"} value="light">
+              Light
+            </Option>
+            <Option key={"dark"} value="vs-dark">Dark</Option>
+          </Select>
         </Item>
       </Form>
     </>

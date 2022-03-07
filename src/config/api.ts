@@ -19,5 +19,8 @@ export const config = {
     heatMap: "heat-map",
     varList: "var-list",
     upload: "function-list",
+    lifecycle: "lifecycle-data",
+    phenogram: "phenogram",
+    similar: "similar",
   },
 };

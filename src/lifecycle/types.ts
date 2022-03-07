@@ -1,4 +1,5 @@
 import { HierarchyNode } from "d3";
+import type { SourceLocation } from "@babel/types";
 import type { AnyObject } from "../types";
 
 export type D3Selection = d3.Selection<any, any, any, any>;
@@ -18,7 +19,7 @@ export type lineNumberCfg = {
 };
 
 export type LifeCycleProps = {
-  data: LifeCycleData;
+  code: string;
   colorMap: AnyObject;
   maxLine: number;
   lineNumber?: boolean;
@@ -57,10 +58,6 @@ export interface LifeCycleParameters {
    * 基于 width height padding maxLine maxCols 计算出每格的像素值
    */
   maxCols: number;
-  // /**
-  //  * 数据
-  //  */
-  // data: LifeCycleData;
   /**
    * 每种类型的节点颜色
    */
@@ -86,6 +83,7 @@ export interface LifeCycleNode {
    * 节点类型（statement）
    */
   type: string;
+  loc: SourceLocation;
   [keys: string]: any;
 }
 

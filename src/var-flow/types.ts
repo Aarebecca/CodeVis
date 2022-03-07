@@ -1,21 +1,33 @@
-import { AnyObject } from "../types";
+import type { AnyObject } from "../types";
+import type { EditorProps } from "../editor/types";
+
+export type Arrow = string[];
+
+export type Range = [number, number, number, number];
 
 export type CodeColor = {
   type?: string;
-  range: [number, number, number, number];
+  range: Range;
   color: string;
 };
 
 export type RangeClassColor = {
-  range: [number, number, number, number];
+  range: Range;
   className: string;
   glyphMarginClassName: string;
 };
 
 export interface VarFlowProps {
   code: string;
-  statementColor?: AnyObject;
+  theme: EditorProps["theme"];
+  arrowColor: Arrow;
+  fontSize: number;
+  colorMap: AnyObject;
   lineHeight?: number;
+  indicator: boolean;
+  varFlowEnabled: boolean;
+  heatMapEnabled: boolean;
+  indicatorColor: string[];
   colorClassNameRule?: (color: string) => string;
 }
 
@@ -29,6 +41,6 @@ export type BezierControlPointsGenerator = (
 export type VarList = {
   varList: string[];
   locList: {
-    [keys: string]: [number, number, number, number][];
+    [keys: string]: Range[];
   };
 };

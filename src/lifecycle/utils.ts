@@ -21,12 +21,14 @@ export const TRANSPARENT_FLAG = "transparent";
  * 判断给定节点是否是满足位置描述信息的节点
  */
 export function matchNode(
-  { start, end, type, _type }: LifeCycleNode,
+  { loc, type, _type }: LifeCycleNode,
   node: NodePos
 ): boolean {
   return (
-    start === node.start &&
-    end === node.end &&
+    loc.start.line === node.loc.start.line &&
+    loc.start.column === node.loc.start.column &&
+    loc.end.line === node.loc.end.line &&
+    loc.end.column === node.loc.end.column &&
     (type !== TRANSPARENT_FLAG ? node.type === type : node._type === _type)
   );
 }
@@ -182,6 +184,7 @@ export function hierarchyNode2LifeCycleData(
  * 默认 collapse 状态
  */
 function defaultCollapseCfg(index: number, type?: string) {
+  // 根节点默认展开
   return index === 0 ? false : true;
 }
 
@@ -192,7 +195,7 @@ export function lifeCycleData2HierarchyNode(
   const root = d3.hierarchy(cloneDeep(node));
   // init collapse attribute
   root.descendants().forEach((d, i) => {
-    // 根节点默认展开
+    // 添加 collapse 默认值
     !d.data.hasOwnProperty("collapse") &&
       (d.data.collapse = defaultCollapseCfg(i));
   });
@@ -240,7 +243,6 @@ export function pipeline(node: LifeCycleData, collapseCfg?: CollapseCfg) {
    * 2. 导出结果
    */
   const results = getNodesByDepth(collapseData);
-
   /**
    * 3. 转化为 LifeCycleData
    */

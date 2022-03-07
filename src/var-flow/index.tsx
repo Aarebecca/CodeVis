@@ -16,7 +16,18 @@ const defaultColorClassRuler = (color: string) => {
 };
 
 const VarFlow: React.FC<VarFlowProps> = (props) => {
-  const { code } = props;
+  const {
+    code,
+    theme,
+    arrowColor,
+    fontSize,
+    colorMap,
+    indicator,
+    lineHeight,
+    varFlowEnabled,
+    heatMapEnabled,
+    indicatorColor,
+  } = props;
   const { colorClassNameRule = defaultColorClassRuler } = props;
 
   const varFlowRef = useRef<SVGSVGElement>(null);
@@ -25,11 +36,14 @@ const VarFlow: React.FC<VarFlowProps> = (props) => {
   const [flowPathState, setFlowPathState] = useState<
     Selection<SVGPathElement, unknown, null, undefined>[]
   >([]);
+
   const defaultVarList = {
     locList: {},
     varList: [],
   };
   const [varListState, setVarListState] = useState<VarList>(defaultVarList);
+
+  const markerID = (name: string) => `marker-${name}`;
 
   /**
    * query var flow data
@@ -44,13 +58,11 @@ const VarFlow: React.FC<VarFlowProps> = (props) => {
           Message.error(`Failed to query variable list: ${message}`);
         }
       });
-    } else {
-      setVarListState(defaultVarList);
     }
   }, [code]);
 
   /**
-   * draw var flow
+   * 绘制变量箭头
    */
   useEffect(() => {
     const svg = d3.select(varFlowRef.current);
@@ -60,7 +72,7 @@ const VarFlow: React.FC<VarFlowProps> = (props) => {
       setFlowPathState([]);
     }
 
-    function addFlowPath(from: Point, to: Point) {
+    function addFlowPath(from: Point, to: Point, color: string) {
       if (editorInstance && editorInstance.editor) {
         const path = createConnectionPath(editorInstance.editor, from, to);
         const pathSelection = svg
@@ -68,7 +80,9 @@ const VarFlow: React.FC<VarFlowProps> = (props) => {
           .attr("d", path)
           .attr(
             "style",
-            "fill:none;stroke:red;stroke-width=6px;cursor: default;marker-end: url(#arrow);"
+            `fill:none;stroke: ${color};stroke-width:2px;cursor: default;marker-end: url(#${markerID(
+              color
+            )});`
           );
         setFlowPathState((curr) => [...curr, pathSelection]);
       }
@@ -79,13 +93,13 @@ const VarFlow: React.FC<VarFlowProps> = (props) => {
     /**
      * 分别提取出每个变量的位置
      */
-
-    if (varListState) {
-      Object.values(varListState.locList).forEach((locList) => {
+    if (varFlowEnabled && varListState) {
+      Object.entries(varListState.locList).forEach(([varName, locList]) => {
+        const varIndex = varListState.varList.indexOf(varName);
         if (locList.length > 1) {
           for (let idx = 0; idx < locList.length - 1; idx++) {
             const { from, to } = getArrowPos(locList[idx], locList[idx + 1]);
-            addFlowPath(from, to);
+            addFlowPath(from, to, arrowColor[varIndex % arrowColor.length]);
           }
         }
       });
@@ -93,26 +107,25 @@ const VarFlow: React.FC<VarFlowProps> = (props) => {
 
     return removeFlowPath;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [varFlowRef, editorInstance, varListState]);
+  }, [
+    varFlowRef,
+    editorInstance,
+    varListState,
+    lineHeight,
+    varFlowEnabled,
+    arrowColor,
+  ]);
+
+  const indicatorClassName = (v: string) => `var-flow-variable-indicator-${v}`;
 
   /**
    * query decorator data
    */
   useEffect(() => {
-    const {
-      code,
-      statementColor = {
-        // BlockStatement: "#f0f2f5",
-        // ReturnStatement: "#ff6c37",
-        // VariableDeclarator: "#e5fff1",
-        VariableDefinition: "red",
-        VariableMention: "green",
-      },
-    } = props;
-    if (code !== "") {
+    if (heatMapEnabled && code !== "") {
       query("heatMap", {
         code,
-        nodeColor: statementColor,
+        nodeColor: colorMap,
       }).then(({ status, data, message }) => {
         if (status === "ok") {
           setDecoratorsDataState(data);
@@ -120,13 +133,15 @@ const VarFlow: React.FC<VarFlowProps> = (props) => {
           Message.error(`Parse failed: ${message}`);
         }
       });
+    } else {
+      setDecoratorsDataState([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [varFlowRef, code, props.statementColor]);
+  }, [varFlowRef, code, colorMap, heatMapEnabled]);
 
   const decorators = useMemo(() => {
     if (!decoratorsDataState) return [];
-    return decoratorsDataState.map((item) => {
+    const heatMapDecorators = decoratorsDataState.map((item) => {
       const { range, color } = item;
       const className = colorClassNameRule(color);
       return {
@@ -134,7 +149,20 @@ const VarFlow: React.FC<VarFlowProps> = (props) => {
         className,
       };
     });
-  }, [colorClassNameRule, decoratorsDataState]);
+
+    const variableIndicatorDecorators: typeof heatMapDecorators = [];
+
+    Object.entries(varListState.locList).forEach(([name, locs]) => {
+      locs.forEach((loc) => {
+        variableIndicatorDecorators.push({
+          range: loc,
+          className: indicatorClassName(name),
+        });
+      });
+    });
+
+    return [...heatMapDecorators, ...variableIndicatorDecorators];
+  }, [colorClassNameRule, decoratorsDataState, varListState]);
 
   /**
    * create decorators css
@@ -144,12 +172,29 @@ const VarFlow: React.FC<VarFlowProps> = (props) => {
     const colorClassList = Array.from(
       new Set(decoratorsDataState.map((item) => item.color))
     );
-    return colorClassList
-      .map((color) => {
-        return `.${colorClassNameRule(color)} { background: ${color}; }`;
-      })
-      .join("\n");
-  }, [colorClassNameRule, decoratorsDataState]);
+
+    const variableCSS = indicator
+      ? varListState.varList.map(
+          (name, idx) =>
+            `.${indicatorClassName(name)} { border: 1px solid ${
+              indicatorColor[idx % indicatorColor.length]
+            } }`
+        )
+      : [];
+
+    const colorCSS = colorClassList.map((color) => {
+      return `.${colorClassNameRule(color)} { background: ${color}; }`;
+    });
+    return [...variableCSS, ...colorCSS].join("\n");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    colorClassNameRule,
+    decoratorsDataState,
+    varListState.varList,
+    arrowColor,
+    indicator,
+    indicatorColor,
+  ]);
 
   /**
    * get editor information
@@ -175,20 +220,38 @@ const VarFlow: React.FC<VarFlowProps> = (props) => {
     const { contentLeft, contentWidth, height } = editor.getLayoutInfo();
     return {
       width: `${contentWidth}px`,
-      height: `${height}px`,
+      height: "100%",
       left: `${contentLeft}px`,
       top: "0px",
-      // backgroundColor: "rgb(255, 0,0,0.5)",
     };
   }, [editorInstance]);
+
+  const marker = (id: string, color: string, size: number) => {
+    return (
+      <marker
+        key={id}
+        id={id}
+        markerUnits="strokeWidth"
+        markerWidth={size}
+        markerHeight={size}
+        viewBox={`0 0 12 12`}
+        refX="6"
+        refY="6"
+        orient="auto"
+      >
+        <path d="M2,2 L10,6 L2,10 L6,6 L2,2" style={{ fill: color }}></path>
+      </marker>
+    );
+  };
 
   return (
     <div className="var-flow">
       <div className="var-flow-container var-flow-code-editor-container">
         <CodeEditor
           code={code}
-          lineHeight={25}
-          fontSize={14}
+          theme={theme}
+          lineHeight={lineHeight}
+          fontSize={fontSize}
           decorations={decorators}
           getEditorInstance={setEditorInstance}
         />
@@ -200,21 +263,9 @@ const VarFlow: React.FC<VarFlowProps> = (props) => {
       >
         <svg ref={varFlowRef} className="var-flow-graph">
           <defs>
-            <marker
-              id="arrow"
-              markerUnits="strokeWidth"
-              markerWidth="12"
-              markerHeight="12"
-              viewBox="0 0 12 12"
-              refX="6"
-              refY="6"
-              orient="auto"
-            >
-              <path
-                d="M2,2 L10,6 L2,10 L6,6 L2,2"
-                style={{ fill: "#f00" }}
-              ></path>
-            </marker>
+            {arrowColor.map((color) => {
+              return marker(markerID(color), color, 8);
+            })}
           </defs>
         </svg>
       </div>

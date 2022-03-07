@@ -1,7 +1,9 @@
 import * as d3 from "d3";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { getNodesCollapseState, matchNode, pipeline } from "./utils";
 import { LifeCycleDiagram } from "./lifecycle";
-import { matchNode, getNodesCollapseState, pipeline } from "./utils";
+import { message as Message } from "antd";
+import { query } from "../utils";
 
 import type {
   LifeCycleProps,
@@ -13,10 +15,12 @@ import type {
 export const LifeCycle: React.FC<LifeCycleProps> = (props) => {
   const lifeCycleRef = useRef<SVGSVGElement>(null);
 
-  const { data, colorMap, maxLine, lineNumber } = props;
+  const { code, colorMap, maxLine, lineNumber } = props;
 
-  const width = 20;
-  const height = 200;
+  const width = 50;
+  const height = 500;
+
+  const [dataState, setDataState] = useState<LifeCycleData | undefined>();
 
   const [elState, setElState] = useState<d3.Selection<any, any, any, any>[]>(
     []
@@ -25,18 +29,21 @@ export const LifeCycle: React.FC<LifeCycleProps> = (props) => {
   // 从 data 中获取节点初始状态
   const [collapseCfgState, setCollapseCfgState] = useState<
     [LifeCycleNode, boolean][]
-  >(getNodesCollapseState(data));
+  >([]);
 
-  const tooltip = d3
-    .select("body")
-    .append("div")
-    .style("position", "absolute")
-    .style("z-index", "10")
-    .style("visibility", "hidden")
-    .style("background", "#000")
-    .style("color", "white")
-    .style("border-radius", "5px")
-    .style("padding", "5px")
+  // 查询渲染数据
+  useEffect(() => {
+    query("lifecycle", { code }).then(({ status, data, message }) => {
+      if (status === "ok") {
+        setDataState(data);
+        console.log(getNodesCollapseState(data));
+
+        setCollapseCfgState(getNodesCollapseState(data));
+      } else {
+        Message.error(`Failed to query lifecycle data: ${message}`);
+      }
+    });
+  }, [code]);
 
   const onCollapseChange = (nodes: LifeCycleNode[], collapse?: boolean) => {
     // 将 nodes 中深度最低的非展开节点 (collapse === true ) 标记为展开 （暂时没想好怎么折叠）
@@ -61,13 +68,14 @@ export const LifeCycle: React.FC<LifeCycleProps> = (props) => {
     };
 
     const _ = firstCollapseNode(nodes);
-    console.log("1", collapseCfgState, _);
+
+    console.log("firstCollapseNode", _, nodes);
 
     const newState: [LifeCycleNode, boolean][] = collapseCfgState.map(
       ([n, c]) => {
         if (_) {
           if (matchNode(_, n)) {
-            return [n, collapse || !c];
+            return [n, collapse === undefined ? !c : collapse];
           }
           return [n, c];
         }
@@ -82,17 +90,21 @@ export const LifeCycle: React.FC<LifeCycleProps> = (props) => {
     return new LifeCycleDiagram({
       colorMap,
       maxLine,
-      tooltip,
-      width: 20,
-      height: 200,
+      tooltip: d3.select("#tooltip"),
+      width,
+      height,
     });
   }, [colorMap, maxLine]);
 
   useEffect(() => {
+    if (!dataState) return;
+
     const clearEl = () => {
       elState.forEach((el) => el.remove());
       setElState([]);
     };
+
+    let lN: D3Selection | undefined;
 
     clearEl();
 
@@ -107,11 +119,9 @@ export const LifeCycle: React.FC<LifeCycleProps> = (props) => {
       lC.render(diagram, data, onCollapseChange);
     };
 
-    pipeline(data, collapseCfgState).forEach((d, i) => {
-      addEl(d, i * 20);
+    pipeline(dataState, collapseCfgState).forEach((d, i) => {
+      addEl(d, i * width);
     });
-
-    let lN: D3Selection | undefined;
 
     if (lineNumber) {
       lN = lC.addLineNumber(d3.select(lifeCycleRef.current), [0, 9]);
@@ -122,7 +132,7 @@ export const LifeCycle: React.FC<LifeCycleProps> = (props) => {
       clearEl();
       lN && lN.remove();
     };
-  }, [lifeCycleRef, lC, data, collapseCfgState]);
+  }, [lifeCycleRef, lC, dataState, collapseCfgState]);
 
   return (
     <>

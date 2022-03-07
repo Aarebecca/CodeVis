@@ -3,7 +3,7 @@ import { UILayout } from "./layout";
 
 const App: React.FC<{}> = () => {
   return (
-    <div style={{ height: "1080px", width: "1920px" }}>
+    <div style={{ height: "100%", width: "100%" }}>
       <UILayout />
     </div>
   );

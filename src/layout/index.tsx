@@ -1,23 +1,44 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Col, Row, Layout } from "antd";
-import { VarFlow } from "../var-flow";
-import { Panel } from "../panel";
+import React, { useEffect, useMemo, useState } from "react";
+import { Col, Card, Layout, Row } from "antd";
+import { IconFont } from "../icon";
 import { LifeCycle } from "../lifecycle";
+import { Panel } from "../panel";
+import { Phenogram } from "../phenogram";
+import { statementColors2ColorMap } from "../utils";
+import { VarFlow } from "../var-flow";
 import "antd/dist/antd.css";
 
 import type { FunctionList, StatementColor } from "../types";
+import type {EditorProps} from "../editor/types"
 
-const { Header, Footer, Sider, Content } = Layout;
+const { Header, Sider, Content } = Layout;
 
 export type UILayoutProps = {};
 
+const setStorage = (key: string, value: any) => {
+  localStorage.setItem(key, JSON.stringify(value));
+};
+
+const getStorage = (key: string, defaultValue: any) => {
+  const _ = localStorage.getItem(key);
+  if (_ === null) {
+    return defaultValue;
+  }
+  return JSON.parse(_);
+};
+
 const UILayout: React.FC<UILayoutProps> = (props) => {
   // the functions parse from uploaded file
-  const [functionsState, setFunctionsState] = useState<FunctionList>({
-    available: [],
-    functions: [],
-    normalized: [],
-  });
+  const [functionsState, setFunctionsState] = useState<FunctionList>(
+    getStorage("functionsState", {
+      available: [],
+      functions: [],
+      normalized: [],
+    })
+  ); // 读缓存
+
+  // 编辑器主题
+  const [themeState, setThemeState] = useState<EditorProps["theme"]>("light");
 
   // the current code display in the editor
   const [codeState, setCodeState] = useState<string>("");
@@ -25,12 +46,16 @@ const UILayout: React.FC<UILayoutProps> = (props) => {
   // the filter switch state of function list
   const [filterState, setFilterState] = useState<boolean>(true);
 
-  const lineHeightRange: [number, number] = [10, 30];
+  const lineHeightRange: [number, number] = [18, 40];
   // the line height of the code editor
-  const [lineHeightState, setLineHeightState] = useState<number>(10);
+  const [lineHeightState, setLineHeightState] = useState<number>(25);
+
+  const fontSizeRange: [number, number] = [14, 40];
+  const [fontSizeState, setFontSizeState] = useState<number>(14);
 
   // wether to display variable flow
   const [varFlowEnableState, setVarFlowEnableState] = useState<boolean>(true);
+  const [heatMapEnableState, setHeatMapEnableState] = useState<boolean>(true);
 
   const [varFlowHighlightState, setVarFlowHighlightState] =
     useState<boolean>(true);
@@ -38,29 +63,47 @@ const UILayout: React.FC<UILayoutProps> = (props) => {
   // the statement color of the code
   const [statementColorsState, setStatementColorsState] = useState<
     StatementColor[]
-  >([]);
+  >(getStorage("statementColors", [])); // 尝试读缓存颜色
+
+  const [arrowColorState, setArrowColorState] = useState<string>("red");
 
   const panelProps = {
     functionsState,
     setFunctionsState,
+    themeState,
+    setThemeState,
     codeState,
     setCodeState,
+    arrowColorState,
+    setArrowColorState,
     filterState,
     setFilterState,
+    fontSizeRange,
+    fontSizeState,
+    setFontSizeState,
     lineHeightRange,
     lineHeightState,
     setLineHeightState,
     varFlowEnableState,
     setVarFlowEnableState,
+    heatMapEnableState,
+    setHeatMapEnableState,
     varFlowHighlightState,
     setVarFlowHighlightState,
     statementColorsState,
     setStatementColorsState,
   };
 
+  // 如果更新了文件，就重置代码
   useEffect(() => {
+    setStorage("functionsState", functionsState);
     setCodeState("");
   }, [functionsState]);
+
+  // 缓存颜色
+  useEffect(() => {
+    setStorage("statementColors", statementColorsState);
+  }, [statementColorsState]);
 
   const codeStr = useMemo(() => {
     const index = functionsState.functions.indexOf(codeState);
@@ -70,106 +113,81 @@ const UILayout: React.FC<UILayoutProps> = (props) => {
     return functionsState.normalized[index];
   }, [functionsState, codeState]);
 
+  const colorMap = statementColors2ColorMap(statementColorsState);
+
+  const fW = { width: "100%" };
+  const fH = { height: "100%" };
+
+  const fullSize = {
+    ...fW,
+    ...fH,
+  };
+
   return (
-    <Layout>
-      <Header>header</Header>
-      <Layout>
+    <Layout style={fullSize}>
+      <Header style={{ padding: "0 0 0 10px" }}>
+        <div
+          style={{
+            ...fullSize,
+            color: "white",
+            fontSize: "40px",
+          }}
+        >
+          <IconFont type="icon-Code" />
+          <span style={{ marginLeft: "20px" }}>CodeVis</span>
+        </div>
+      </Header>
+      <Layout style={fullSize}>
         <Sider width="15%">
           <Panel {...panelProps} />
         </Sider>
-        <Content>
-          <Row style={{ height: "900px" }}>
-            <Col span={12}>
-              <VarFlow code={codeStr}></VarFlow>
+        <Content style={fH}>
+          <Row style={fH}>
+            <Col span={10} style={fH}>
+              <Card title="Variable Flow View">
+                <VarFlow
+                  theme={themeState}
+                  code={codeStr}
+                  arrowColor={[arrowColorState]}
+                  colorMap={colorMap}
+                  indicatorColor={["red"]}
+                  fontSize={fontSizeState}
+                  lineHeight={lineHeightState}
+                  indicator={varFlowHighlightState}
+                  varFlowEnabled={varFlowEnableState}
+                  heatMapEnabled={heatMapEnableState}
+                ></VarFlow>
+              </Card>
             </Col>
-            <Col span={12}>
+            <Col span={8} style={fH}>
               <LifeCycle
-                maxLine={10}
-                colorMap={{
-                  A: "red",
-                  B: "green",
-                  C: "blue",
-                  D: "pink",
-                  E: "yellow",
-                  EA: "#3f32a6",
-                  EB: "#3ff2a0",
-                  F: "orange",
-                  FA: "#12faff",
-                  FAA: "#681234",
-                  FAB: "#fa0313",
-                  G: "purple",
-                }}
-                data={{
-                  node: { start: 1, end: 8, type: "A" }, // depth 1
-                  // collapse: false,
-                  children: [
-                    {
-                      node: { start: 2, end: 2, type: "B" }, // depth 2
-                      // collapse: false,
-                      children: [],
-                    },
-                    {
-                      node: { start: 2, end: 2, type: "C" }, // depth 2
-                      // collapse: true,
-                      children: [],
-                    },
-                    {
-                      node: { start: 3, end: 3, type: "D" }, // depth 2
-                      // collapse: true,
-                      children: [],
-                    },
-                    {
-                      node: { start: 4, end: 5, type: "E" }, // depth 2
-                      // collapse: false,
-                      children: [
-                        {
-                          node: { start: 5, end: 5, type: "EA" }, // depth 2
-                          // collapse: true,
-                          children: [],
-                        },
-                        {
-                          node: { start: 5, end: 5, type: "EB" }, // depth 2
-                          // collapse: false,
-                          children: [],
-                        },
-                      ],
-                    },
-                    {
-                      node: { start: 4, end: 5, type: "F" }, // depth 2
-                      collapse: false,
-                      children: [
-                        {
-                          node: { start: 5, end: 5, type: "FA" }, // depth 2
-                          // collapse: false,
-                          children: [
-                            {
-                              node: { start: 5, end: 5, type: "FAA" }, // depth 2
-                              // collapse: false,
-                              children: [],
-                            },
-                            {
-                              node: { start: 5, end: 5, type: "FAB" }, // depth 2
-                              // collapse: true,
-                              children: [],
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                    {
-                      node: { start: 7, end: 8, type: "G" }, // depth 2
-                      // collapse: true,
-                      children: [],
-                    },
-                  ],
-                }}
+                maxLine={16}
+                colorMap={colorMap}
+                code={`function getState(scrollHeight, height, offsetTop, offsetBottom) {
+                  let scrollTop = this.$target.scrollTop();
+                  let position = this.$element.offset();
+                  let targetHeight = this.$target.height();
+                  if (offsetTop != null && this.affixed === 'top') return scrollTop < offsetTop ? 'top' : false;
+                  if (this.affixed === 'bottom') {
+                    if (offsetTop != null) return scrollTop + this.unpin <= position.top ? false : 'bottom';
+                    return scrollTop + targetHeight <= scrollHeight - offsetBottom ? false : 'bottom';
+                  }
+                  let initializing = this.affixed == null;
+                  let colliderTop = initializing ? scrollTop : position.top;
+                  let colliderHeight = initializing ? targetHeight : height;
+                  if (offsetTop != null && scrollTop <= offsetTop) return 'top';
+                  if (offsetBottom != null && (colliderTop + colliderHeight >= scrollHeight - offsetBottom)) return 'bottom';
+                  return false;
+                }`}
               />
+            </Col>
+            <Col span={6} style={fH}>
+              <Phenogram code={""} colorMap={{}} shape={[0, 0]} />
             </Col>
           </Row>
         </Content>
-        <Sider>right sidebar</Sider>
+        {/* <Sider>right sidebar</Sider> */}
       </Layout>
-      <Footer>footer</Footer>
     </Layout>
   );
 };

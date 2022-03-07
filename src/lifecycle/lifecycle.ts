@@ -3,7 +3,7 @@
  */
 import { get, isObject, merge, set } from "lodash";
 import * as d3 from "d3";
-import { leastCommonMultiple, mixColor } from "../utils";
+import { leastCommonMultiple, mixColor, MIXER } from "../utils";
 import { nodeMatrix2TypeMatrix, TRANSPARENT_FLAG } from "./utils";
 
 import type {
@@ -213,6 +213,16 @@ export class LifeCycleDiagram {
       node: {
         start: 1,
         end: this.get("maxLine"),
+        loc: {
+          start: {
+            line: 1,
+            column: 1,
+          },
+          end: {
+            line: this.get("maxLine"),
+            column: 1,
+          },
+        },
         type: "root",
       },
       children: [data],
@@ -288,7 +298,7 @@ export class LifeCycleDiagram {
    * 将节点类型矩阵转换为渲染的颜色矩阵
    * @param typeMat
    */
-  private colorMat(typeMat: TypeMatrix, mixer = () => 1): ColorMatrix {
+  private colorMat(typeMat: TypeMatrix, mixer = MIXER.geometric): ColorMatrix {
     const colorMap = this.get("colorMap");
     const colorMat: ColorMatrix = Array.from(
       { length: typeMat.length },
@@ -373,9 +383,15 @@ export class LifeCycleDiagram {
           d3.select(this).transition().duration(50).attr("stroke", "white");
         }
 
-        if (tooltip) {
+        const items = (
+          (d3.select(this).data() as any[])[0].nodes as LifeCycleNode[]
+        )
+          .slice(1)
+          .filter((item) => item.type !== "transparent");
+
+        if (tooltip && items.length > 0) {
           tooltip.html(
-            ((d3.select(this).data() as any[])[0].nodes as LifeCycleNode[])
+            items
               .map(
                 ({ start, end, type, _type }) =>
                   `${
@@ -397,9 +413,14 @@ export class LifeCycleDiagram {
         d3.select(this).transition().duration(50).attr("stroke", "none");
         tooltip && tooltip.style("visibility", "hidden");
       })
-      .on("click", function (d) {
+      .on("click", function (event) {
         const node = (d3.select(this).data() as LifeCycleNode[])[0];
         callback(node.nodes);
+      })
+      .on("contextmenu", function (event) {
+        event.preventDefault();
+        const node = (d3.select(this).data() as LifeCycleNode[])[0];
+        callback(node.nodes, true);
       });
 
     label &&

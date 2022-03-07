@@ -16,6 +16,8 @@ const CodeEditor: React.FC<EditorProps> = (props) => {
   const [monacoState, setMonacoState] = useState<Monaco>();
   const [decoState, setDecoState] = useState<string[][]>([]);
 
+  const { code, lineHeight, fontSize, theme } = props;
+
   function handleEditorDidMount(editor: ICodeEditor, monaco: Monaco) {
     editorRef.current = editor;
     setEditorState(editor);
@@ -88,9 +90,7 @@ const CodeEditor: React.FC<EditorProps> = (props) => {
     addDecorations();
     return removeAllDecoration;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.decorations, editorState, monacoState]);
-
-  const { code, lineHeight = 19, fontSize = 14, theme = "light" } = props;
+  }, [props.decorations, editorState, monacoState, fontSize]);
 
   useEffect(() => {
     editorState?.getModel()?.setValue(code);
@@ -106,14 +106,16 @@ const CodeEditor: React.FC<EditorProps> = (props) => {
     <Editor
       defaultLanguage="javascript"
       defaultValue={code}
-      path="avb.js"
       theme={theme}
       loading={<Spin tip="Loading..." />}
       options={{
-        lineNumbers: "on",
-        lineHeight,
         fontSize,
-        glyphMargin: true,
+        lineHeight,
+        lineNumbers: "on",
+        scrollbar: {
+          vertical: "hidden",
+          horizontal: "hidden",
+        },
       }}
       onMount={handleEditorDidMount}
     />

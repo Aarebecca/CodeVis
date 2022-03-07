@@ -1,81 +1,42 @@
-import React from "react";
-import { Collapse, Form, Switch, Tooltip } from "antd";
-import { ColorItems } from "./color-picker";
-import { ImportOutlined, DeliveredProcedureOutlined } from "@ant-design/icons";
+import React, { useState } from "react";
+import { GithubPicker } from "react-color";
+import { Form, Switch, Tooltip } from "antd";
 
-import type { SetState, StatementColor } from "../types";
+import type { SetState } from "../types";
 
 export type VariableFlowProps = {
+  arrowColorState: string;
+  setArrowColorState: SetState<string>;
   varFlowEnableState: boolean;
   setVarFlowEnableState: SetState<boolean>;
   varFlowHighlightState: boolean;
   setVarFlowHighlightState: SetState<boolean>;
-  statementColorsState: StatementColor[];
-  setStatementColorsState: SetState<StatementColor[]>;
+  heatMapEnableState: boolean;
+  setHeatMapEnableState: SetState<boolean>;
 };
 
-const { Panel } = Collapse;
 const { Item } = Form;
 
 export const VariableFlow: React.FC<VariableFlowProps> = (props) => {
   const {
+    arrowColorState,
+    setArrowColorState,
     varFlowEnableState,
     setVarFlowEnableState,
     varFlowHighlightState,
     setVarFlowHighlightState,
-    statementColorsState,
-    setStatementColorsState,
+    heatMapEnableState,
+    setHeatMapEnableState,
   } = props;
 
-  const importCfg = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".json";
-    input.onchange = (event: any) => {
-      const file = event.target.files[0];
-      // read file
-      const reader = new FileReader();
-      reader.onload = (loadedFile: any) => {
-        const loadedStatementColors = JSON.parse(
-          loadedFile.target.result
-        ) as StatementColor[];
-        setStatementColorsState(loadedStatementColors);
-      };
-      reader.readAsText(file);
-    };
-    input.click();
-  };
+  const [showColorPickerState, setShowColorPickerState] =
+    useState<boolean>(false);
 
-  const exportCfg = () => {
-    const output = document.createElement("a");
-    output.href = `data:text/plain;charset=utf-8,${encodeURIComponent(
-      JSON.stringify(statementColorsState)
-    )}`;
-    output.download = "statement-colors.json";
-    output.click();
-  };
-
-  const importExport = () => {
-    return (
-      <>
-        <Tooltip title="Import">
-          <ImportOutlined
-            onClick={(event) => {
-              importCfg();
-              event.stopPropagation();
-            }}
-          />
-        </Tooltip>{" "}
-        <Tooltip title="Export">
-          <DeliveredProcedureOutlined
-            onClick={(event) => {
-              exportCfg();
-              event.stopPropagation();
-            }}
-          />
-        </Tooltip>
-      </>
-    );
+  window.onclick = (e: MouseEvent) => {
+    // @ts-ignore
+    if (e.target?.id !== "arrow-color") {
+      setShowColorPickerState(false);
+    }
   };
 
   return (
@@ -83,7 +44,7 @@ export const VariableFlow: React.FC<VariableFlowProps> = (props) => {
       <Item
         label={
           <Tooltip title="Enable variable flow" placement="topLeft">
-            {"Enable"}
+            {"Flow"}
           </Tooltip>
         }
       >
@@ -91,6 +52,20 @@ export const VariableFlow: React.FC<VariableFlowProps> = (props) => {
           defaultChecked={varFlowEnableState}
           onClick={(checked) => {
             setVarFlowEnableState(checked);
+          }}
+        />
+      </Item>
+      <Item
+        label={
+          <Tooltip title="Enable variable flow" placement="topLeft">
+            {"Heat Map"}
+          </Tooltip>
+        }
+      >
+        <Switch
+          defaultChecked={heatMapEnableState}
+          onClick={(checked) => {
+            setHeatMapEnableState(checked);
           }}
         />
       </Item>
@@ -111,15 +86,44 @@ export const VariableFlow: React.FC<VariableFlowProps> = (props) => {
           }}
         />
       </Item>
-      <Item wrapperCol={{ span: 24 }}>
-        <Collapse accordion={true} defaultActiveKey="1">
-          <Panel header={"Statement Color"} key={"1"} extra={importExport()}>
-            <ColorItems
-              statementColorsState={statementColorsState}
-              setStatementColorsState={setStatementColorsState}
+      <Item
+        label={
+          <Tooltip title="Arrow Color" placement="topLeft">
+            {"Arrow Color"}
+          </Tooltip>
+        }
+      >
+        <div
+          style={{
+            width: "20px",
+            height: "20px",
+            backgroundColor: arrowColorState,
+            border: "2px solid lightgray",
+          }}
+          id="arrow-color"
+          onClick={(e) => {
+            setShowColorPickerState(!showColorPickerState);
+          }}
+        ></div>
+        {showColorPickerState ? (
+          <div
+            style={{
+              zIndex: 10,
+              left: "-8px",
+              top: "32px",
+              position: "absolute",
+            }}
+          >
+            <GithubPicker
+              color={arrowColorState}
+              onChangeComplete={(color) => {
+                setArrowColorState(color.hex);
+              }}
             />
-          </Panel>
-        </Collapse>
+          </div>
+        ) : (
+          ""
+        )}
       </Item>
     </Form>
   );

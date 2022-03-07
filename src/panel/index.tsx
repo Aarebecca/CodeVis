@@ -4,10 +4,10 @@ import { PanelUpload } from "./upload";
 import { PanelList, CollapseFilter } from "./list";
 import { PanelEditorConfig } from "./code-view";
 import { VariableFlow } from "./var-flow";
-
+import { IconFont } from "../icon";
+import { StatementColorPicker, importExport } from "./statement-color-picker";
 import {
   AppstoreOutlined,
-  createFromIconfontCN,
   CloudUploadOutlined,
   EditOutlined,
   FileTextOutlined,
@@ -19,44 +19,59 @@ import type { FunctionList, SetState } from "../types";
 import type { VariableFlowProps } from "./var-flow";
 import type { CollapseFilterProps } from "./list";
 import type { PanelEditorConfigProps } from "./code-view";
+import type { StatementColorPickerProps } from "./statement-color-picker";
 
 export type PanelProps = {
   functionsState: FunctionList;
   setFunctionsState: SetState<FunctionList>;
+  themeState: PanelEditorConfigProps["themeState"];
+  setThemeState: PanelEditorConfigProps["setThemeState"];
   codeState: string;
   setCodeState: SetState<string>;
   filterState: CollapseFilterProps["filterState"];
   setFilterState: CollapseFilterProps["setFilterState"];
+  fontSizeRange: PanelEditorConfigProps["fontSizeRange"];
+  fontSizeState: PanelEditorConfigProps["fontSizeState"];
+  setFontSizeState: PanelEditorConfigProps["setFontSizeState"];
   lineHeightRange: PanelEditorConfigProps["lineHeightRange"];
   lineHeightState: PanelEditorConfigProps["lineHeightState"];
   setLineHeightState: PanelEditorConfigProps["setLineHeightState"];
+  arrowColorState: VariableFlowProps["arrowColorState"];
+  setArrowColorState: VariableFlowProps["setArrowColorState"];
   varFlowEnableState: VariableFlowProps["varFlowEnableState"];
   setVarFlowEnableState: VariableFlowProps["setVarFlowEnableState"];
+  heatMapEnableState: VariableFlowProps["heatMapEnableState"];
+  setHeatMapEnableState: VariableFlowProps["setHeatMapEnableState"];
   varFlowHighlightState: VariableFlowProps["varFlowHighlightState"];
   setVarFlowHighlightState: VariableFlowProps["setVarFlowHighlightState"];
-  statementColorsState: VariableFlowProps["statementColorsState"];
-  setStatementColorsState: VariableFlowProps["setStatementColorsState"];
+  statementColorsState: StatementColorPickerProps["statementColorsState"];
+  setStatementColorsState: StatementColorPickerProps["setStatementColorsState"];
 };
 
 const { Text } = Typography;
 const { Panel: CollapsePanel } = Collapse;
 
-const IconFont = createFromIconfontCN({
-  scriptUrl: ["//at.alicdn.com/t/font_3119243_uisd32hn8bm.js"],
-});
-
 export const Panel: React.FC<PanelProps> = (props) => {
   const {
+    themeState,
+    setThemeState,
     functionsState,
     setFunctionsState,
     setCodeState,
     filterState,
     setFilterState,
+    fontSizeRange,
+    fontSizeState,
+    setFontSizeState,
+    arrowColorState,
+    setArrowColorState,
     lineHeightRange,
     lineHeightState,
     setLineHeightState,
     varFlowEnableState,
     setVarFlowEnableState,
+    heatMapEnableState,
+    setHeatMapEnableState,
     varFlowHighlightState,
     setVarFlowHighlightState,
     statementColorsState,
@@ -76,7 +91,7 @@ export const Panel: React.FC<PanelProps> = (props) => {
     {
       header: {
         icon: <CloudUploadOutlined />,
-        title: "Upload",
+        title: "Source Code Upload",
       },
       content: (
         <PanelUpload
@@ -114,6 +129,11 @@ export const Panel: React.FC<PanelProps> = (props) => {
       content: (
         <PanelEditorConfig
           {...{
+            themeState,
+            setThemeState,
+            fontSizeRange,
+            fontSizeState,
+            setFontSizeState,
             lineHeightRange,
             lineHeightState,
             setLineHeightState,
@@ -123,18 +143,34 @@ export const Panel: React.FC<PanelProps> = (props) => {
     },
     {
       header: {
+        icon: <IconFont type="icon-color" />,
+        title: "Statement Color",
+      },
+      content: (
+        <StatementColorPicker
+          {...{ statementColorsState, setStatementColorsState }}
+        />
+      ),
+      props: {
+        extra: importExport(statementColorsState, setStatementColorsState),
+      },
+    },
+    {
+      header: {
         icon: <IconFont type="icon-curve-" />,
         title: "Variable Flow",
       },
       content: (
         <VariableFlow
           {...{
+            arrowColorState,
+            setArrowColorState,
             varFlowEnableState,
             setVarFlowEnableState,
+            heatMapEnableState,
+            setHeatMapEnableState,
             varFlowHighlightState,
             setVarFlowHighlightState,
-            statementColorsState,
-            setStatementColorsState,
           }}
         />
       ),
